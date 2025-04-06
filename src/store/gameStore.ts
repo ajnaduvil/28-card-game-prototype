@@ -231,10 +231,9 @@ export const useGameStore = create<GameState & GameActions>()(
                         state.finalBid = bid;
                     }
 
-                    // Find next player who hasn't passed in round 1 or 2
+                    // Find next player who hasn't passed in round 2
                     let nextPlayerIndex = (state.currentPlayerIndex + 1) % state.players.length;
-                    while (state.players[nextPlayerIndex].hasPassedCurrentRound ||
-                        state.players[nextPlayerIndex].hasPassedRound1) {
+                    while (state.players[nextPlayerIndex].hasPassedCurrentRound) {
                         nextPlayerIndex = (nextPlayerIndex + 1) % state.players.length;
 
                         // If we've gone full circle, break
@@ -245,45 +244,45 @@ export const useGameStore = create<GameState & GameActions>()(
 
                     // Check if bidding round is over
                     const remainingBidders = state.players.filter(
-                        p => !p.hasPassedCurrentRound && !p.hasPassedRound1
+                        p => !p.hasPassedCurrentRound
                     );
 
                     // If only one bidder left OR everyone has passed, end round 2
                     if (remainingBidders.length <= 1) {
-                        if (remainingBidders.length === 1) {
-                            // One player remained - they won the bidding
-                            const finalDeclarerId = remainingBidders[0].id;
-                            state.trumpState.finalDeclarerId = finalDeclarerId;
 
-                            // Check if final declarer is the same as provisional bidder
-                            const sameDeclarers = finalDeclarerId === state.trumpState.provisionalBidderId;
-
-                            if (sameDeclarers && state.trumpState.provisionalTrumpSuit) {
-                                // If same declarer, auto-reveal trump
-                                state.trumpState.trumpRevealed = true;
-                                state.trumpState.finalTrumpSuit = state.trumpState.provisionalTrumpSuit;
-                                state.trumpState.finalTrumpCardId = state.trumpState.provisionalTrumpCardId;
-                                state.trumpState.declarerChoseKeep = true;
-                            }
-
-                            state.currentPhase = 'bidding2_complete';
-                            state.currentPlayerIndex = state.players.findIndex(p => p.id === finalDeclarerId);
-                        } else {
-                            // Everyone passed - use the result from first round if available
-                            if (state.highestBid1 && state.trumpState.provisionalBidderId) {
-                                const provisionalBidderId = state.trumpState.provisionalBidderId;
-                                state.trumpState.finalDeclarerId = provisionalBidderId;
-                                state.trumpState.finalTrumpSuit = state.trumpState.provisionalTrumpSuit;
-                                state.trumpState.declarerChoseKeep = true;
-                                state.finalBid = state.highestBid1;
-
-                                state.currentPhase = 'bidding2_complete';
-                                state.currentPlayerIndex = state.players.findIndex(p => p.id === provisionalBidderId);
-                            } else {
-                                // This shouldn't happen in a normal game - reset
-                                console.error("Invalid game state: no bids in either round");
-                            }
+                        // Determine the true overall highest bid and declarer
+                        let finalBidOverall: Bid | undefined = state.highestBid1;
+                        if (state.highestBid2 && (!finalBidOverall || state.highestBid2.amount > finalBidOverall.amount)) {
+                            finalBidOverall = state.highestBid2;
                         }
+
+                        let finalDeclarerIdOverall: string | undefined;
+                        if (finalBidOverall) {
+                            finalDeclarerIdOverall = finalBidOverall.playerId;
+                        } else {
+                            // Fallback if no bids at all (shouldn't happen with validation)
+                            // If everyone passed R2, the R1 winner is the declarer
+                            finalDeclarerIdOverall = state.trumpState.provisionalBidderId;
+                            finalBidOverall = state.highestBid1; // Use R1 bid
+                        }
+
+                        if (finalDeclarerIdOverall) {
+                            state.trumpState.finalDeclarerId = finalDeclarerIdOverall;
+                            state.finalBid = finalBidOverall; // Set the correct final bid
+
+                            // Set phase and current player for final trump selection
+                            state.currentPhase = 'bidding2_complete';
+                            state.currentPlayerIndex = state.players.findIndex(p => p.id === finalDeclarerIdOverall);
+                        } else {
+                            // Handle error: Could not determine declarer
+                            console.error("Fatal Error: Could not determine final declarer.");
+                            // Potentially reset the round or enter an error state
+                        }
+
+                        // NOTE: We no longer auto-set declarerChoseKeep or trumpRevealed here.
+                        // The finalizeTrump function will handle the logic based on whether
+                        // the highest bidder actually changed between rounds.
+
                     } else {
                         // Bidding continues
                         state.currentPhase = 'bidding2_in_progress';
@@ -357,6 +356,20 @@ export const useGameStore = create<GameState & GameActions>()(
 
                 const currentPlayer = state.players[state.currentPlayerIndex];
 
+                // If no change in the highest bid happened in round 2, must keep the provisional trump
+                // This happens when:
+                // 1. There were no actual bids (only passes) in Round 2, OR
+                // 2. The highest bidder from Round 1 is still the highest bidder in Round 2
+                const highestBidChanged =
+                    state.highestBid2 && // There is a highest bid in Round 2
+                    state.highestBid1 && // There was a highest bid in Round 1
+                    state.highestBid2.playerId !== state.highestBid1.playerId; // Different player
+
+                if (!highestBidChanged) {
+                    console.log("No change in highest bidder - must keep provisional trump");
+                    keepProvisional = true;
+                }
+
                 if (keepProvisional) {
                     // Keep the provisional trump
                     state.trumpState.finalTrumpSuit = state.trumpState.provisionalTrumpSuit;
@@ -415,6 +428,8 @@ export const useGameStore = create<GameState & GameActions>()(
 
         // Play a card
         playCard: (playerId, cardId) => {
+            let success = false;
+
             set(state => {
                 // Validate we're in the right phase
                 if (state.currentPhase !== 'playing_start_trick' &&
@@ -445,17 +460,56 @@ export const useGameStore = create<GameState & GameActions>()(
 
                 const card = currentPlayer.hand[cardIndex];
 
+                // Check if declarer is revealing trump by playing it
+                const isDeclarer = currentPlayer.id === state.trumpState.finalDeclarerId;
+                let isRevealingTrump = false;
+
+                if (
+                    isDeclarer &&
+                    !state.trumpState.trumpRevealed &&
+                    state.trumpState.finalTrumpSuit &&
+                    card.suit === state.trumpState.finalTrumpSuit &&
+                    state.currentTrick.cards.length > 0 && // Not leading a trick
+                    state.currentTrick.leadSuit !== card.suit // Not following suit
+                ) {
+                    isRevealingTrump = true;
+                }
+
+                // Remove card from player's hand
+                currentPlayer.hand.splice(cardIndex, 1);
+
                 // If this is the first card of the trick, set lead suit
                 if (state.currentTrick.cards.length === 0) {
                     state.currentTrick.leadSuit = card.suit;
+                    state.currentTrick.leaderId = currentPlayer.id;
                 }
 
                 // Add card to the trick
                 state.currentTrick.cards.push(card);
                 state.currentTrick.playedBy.push(playerId);
 
-                // Remove card from player's hand
-                currentPlayer.hand.splice(cardIndex, 1);
+                // Handle trump reveal by declarer
+                if (isRevealingTrump) {
+                    state.trumpState.trumpRevealed = true;
+
+                    // Return the folded card to the declarer's hand if it hasn't been returned yet
+                    if (!state.trumpState.foldedCardReturned && state.trumpState.finalTrumpCardId) {
+                        // Find the folded card in the deck
+                        const foldedCardIndex = state.deck.findIndex(
+                            card => card.id === state.trumpState.finalTrumpCardId
+                        );
+
+                        if (foldedCardIndex >= 0) {
+                            // Add the card to declarer's hand and remove from deck
+                            const foldedCard = state.deck[foldedCardIndex];
+                            currentPlayer.hand.push(foldedCard);
+                            state.deck.splice(foldedCardIndex, 1);
+
+                            // Mark as returned
+                            state.trumpState.foldedCardReturned = true;
+                        }
+                    }
+                }
 
                 // Check if trick is complete
                 if (state.currentTrick.cards.length === state.players.length) {
@@ -510,7 +564,11 @@ export const useGameStore = create<GameState & GameActions>()(
                     state.currentPlayerIndex = (state.currentPlayerIndex + 1) % state.players.length;
                     state.currentPhase = 'playing_in_progress';
                 }
+
+                success = true;
             });
+
+            return success;
         },
 
         // Request trump reveal
@@ -529,6 +587,22 @@ export const useGameStore = create<GameState & GameActions>()(
                     !state.trumpState.finalTrumpSuit
                 ) {
                     return;
+                }
+
+                // Get current player
+                const currentPlayer = state.players[state.currentPlayerIndex];
+
+                // Validate current player is not the declarer
+                if (currentPlayer.id === state.trumpState.finalDeclarerId) {
+                    return; // Declarer cannot request trump reveal
+                }
+
+                // Validate player cannot follow suit
+                const canFollowSuit = currentPlayer.hand.some(
+                    card => card.suit === state.currentTrick!.leadSuit
+                );
+                if (canFollowSuit) {
+                    return; // Player can follow suit, cannot request trump reveal
                 }
 
                 // Reveal the trump
