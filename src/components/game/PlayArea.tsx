@@ -1,13 +1,16 @@
 import React from "react";
 import Card from "./Card";
-import { Trick, TrumpState } from "../../models/game";
+import { Trick } from "../../models/game";
 
 interface PlayAreaProps {
   currentTrick: Trick | null;
-  trumpState: TrumpState;
+  playerPositions?: Record<string, string>; // Maps playerId to position (bottom, top, left, right, etc.)
 }
 
-const PlayArea: React.FC<PlayAreaProps> = ({ currentTrick }) => {
+const PlayArea: React.FC<PlayAreaProps> = ({
+  currentTrick,
+  playerPositions = {},
+}) => {
   if (!currentTrick || currentTrick.cards.length === 0) {
     return (
       <div className="play-area w-80 h-80 rounded-full bg-green-900 border-4 border-green-700 shadow-inner flex items-center justify-center">
@@ -22,16 +25,50 @@ const PlayArea: React.FC<PlayAreaProps> = ({ currentTrick }) => {
     0
   );
 
-  // Position cards in a circle pattern based on position in trick
-  const getCardPosition = (index: number, totalCards: number) => {
-    // Only calculating for 3 or 4 cards, but could be extended for more
-    const angleStep = 360 / Math.max(totalCards, 3);
-    const angle = index * angleStep;
-    const radius = 90; // Increased distance from center for larger play area
+  // Get position coordinates based on player position
+  const getPositionCoordinates = (position: string) => {
+    // Default to circle position if position not found
+    const radius = 60; // Slightly reduced from 90 to keep cards closer to center
+    let x = 0;
+    let y = 0;
 
-    const radian = (angle - 90) * (Math.PI / 180);
-    const x = Math.cos(radian) * radius;
-    const y = Math.sin(radian) * radius;
+    switch (position) {
+      case "bottom":
+        x = 0;
+        y = radius;
+        break;
+      case "top":
+        x = 0;
+        y = -radius;
+        break;
+      case "left":
+        x = -radius;
+        y = 0;
+        break;
+      case "right":
+        x = radius;
+        y = 0;
+        break;
+      case "top-left":
+        x = -radius * 0.7;
+        y = -radius * 0.7;
+        break;
+      case "top-right":
+        x = radius * 0.7;
+        y = -radius * 0.7;
+        break;
+      default: {
+        // Fallback to original circle positioning
+        const index = Object.keys(playerPositions).indexOf(position);
+        const totalPlayers = Math.max(Object.keys(playerPositions).length, 3);
+        const angleStep = 360 / totalPlayers;
+        const angle = index * angleStep;
+        const radian = (angle - 90) * (Math.PI / 180);
+        x = Math.cos(radian) * radius;
+        y = Math.sin(radian) * radius;
+        break;
+      }
+    }
 
     return { x, y };
   };
@@ -50,7 +87,12 @@ const PlayArea: React.FC<PlayAreaProps> = ({ currentTrick }) => {
 
       {/* Played cards */}
       {currentTrick.cards.map((card, index) => {
-        const position = getCardPosition(index, currentTrick.cards.length);
+        // Find the player who played this card
+        const playerId = currentTrick.playedBy[index];
+        // Get the position (bottom, top, etc.) of that player
+        const playerPosition = playerPositions[playerId] || "default";
+        // Get x,y coordinates based on position
+        const position = getPositionCoordinates(playerPosition);
 
         return (
           <div

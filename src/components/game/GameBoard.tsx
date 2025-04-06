@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Player } from "../../models/player";
 import { Trick, TrumpState } from "../../models/game";
 import PlayerHand from "./PlayerHand";
@@ -28,6 +28,36 @@ const GameBoard: React.FC<GameBoardProps> = ({
   onRequestTrumpReveal,
   gameMode,
 }) => {
+  // State to store the trick we should display
+  const [displayTrick, setDisplayTrick] = useState<Trick | null>(null);
+
+  // Direct wrapper for card play that captures the trick before it's cleared
+  const handleCardPlay = (card: CardModel) => {
+    // Only do special handling if we're about to complete a trick
+    const willCompleteTrick =
+      currentTrick && currentTrick.cards.length === players.length - 1;
+
+    if (willCompleteTrick) {
+      // Create a copy of what the completed trick will look like after this card
+      const completedTrick = {
+        ...currentTrick!,
+        cards: [...currentTrick!.cards, card],
+        playedBy: [...currentTrick!.playedBy, players[currentPlayerIndex].id],
+      };
+
+      // Set this as our display trick
+      setDisplayTrick(completedTrick);
+
+      // Set a timeout to clear it
+      setTimeout(() => {
+        setDisplayTrick(null);
+      }, 3000);
+    }
+
+    // Call the original handler
+    onCardPlay(card);
+  };
+
   // Calculate positions based on game mode
   const getPlayerPosition = (playerIndex: number) => {
     const currentUserIndex = 0; // Assuming current user is always at bottom position
@@ -69,13 +99,22 @@ const GameBoard: React.FC<GameBoardProps> = ({
     return teamIndex === 0 ? "border-blue-500" : "border-red-500";
   };
 
+  // Create a map of player IDs to their positions for the PlayArea
+  const playerPositions: Record<string, string> = {};
+  players.forEach((player, index) => {
+    playerPositions[player.id] = getPlayerPosition(index);
+  });
+
   return (
     <div className="game-board relative bg-gray-900 rounded-xl shadow-lg w-full max-w-5xl h-[700px] mx-auto overflow-hidden">
       <div className="absolute inset-0 opacity-10 pointer-events-none bg-[url('/src/assets/images/card-table-bg.jpg')] bg-cover" />
 
       {/* Play area in the center */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <PlayArea currentTrick={currentTrick} trumpState={trumpState} />
+        <PlayArea
+          currentTrick={displayTrick || currentTrick}
+          playerPositions={playerPositions}
+        />
       </div>
 
       {/* Position players around the table */}
@@ -158,7 +197,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
             <PlayerHand
               hand={player.hand}
               isCurrentPlayer={index === currentPlayerIndex}
-              onCardPlay={isCurrentPlayer ? onCardPlay : undefined}
+              onCardPlay={isCurrentPlayer ? handleCardPlay : undefined}
               onRequestTrumpReveal={
                 isCurrentPlayer ? onRequestTrumpReveal : undefined
               }

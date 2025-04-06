@@ -98,11 +98,17 @@ export const isValidPlay = (
     trumpState: TrumpState,
     finalDeclarerId?: string
 ): boolean => {
-    // If this is the first card of the trick, any card is valid
-    if (currentTrick.cards.length === 0) return true;
-
     const { finalTrumpSuit, trumpRevealed } = trumpState;
     const isDeclarer = playerId === finalDeclarerId;
+
+    // If this is the first card of the trick (leading)
+    if (currentTrick.cards.length === 0) {
+        // Prevent leading with trump if trump is not revealed
+        if (!trumpRevealed && finalTrumpSuit && card.suit === finalTrumpSuit) {
+            return false; // Cannot lead with unrevealed trump
+        }
+        return true; // Any other card is valid for leading
+    }
 
     const leadSuit = currentTrick.leadSuit;
 
