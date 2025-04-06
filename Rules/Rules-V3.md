@@ -37,6 +37,9 @@
 2.  **Select Deck:** Use the 32-card deck for 4 players or the 24-card deck for 3 players.
 3.  **Shuffle:** The dealer shuffles the appropriate deck thoroughly.
 4.  **Seating:** In 4-player mode, partners sit opposite each other.
+5.  **(Optional) Starting Stakes:** Before the first round, agree on a starting amount of money or coins.
+    *   **4-Player:** Each team starts with a fixed, equal amount.
+    *   **3-Player:** Each player starts with a fixed, equal amount.
 
 ## 4. Dealing Process (Two Batches)
 
@@ -54,9 +57,9 @@ The dealer deals cards clockwise in two distinct batches, with a bidding round a
 2.  **Starting Bidder:** The **Original Starting Bidder** (player to dealer's right) begins the auction.
 3.  **Bidding:** Proceeds clockwise. Each player may:
     *   Make a numerical bid higher than the current highest bid. The minimum opening bid is typically 14 (confirm with players).
-    *   Declare "Honors" (if applicable rules/hand conditions are met - requires pre-agreed definition).
+    *   Declare "Honors". An "Honors" bid in this round is any bid *exceeding* 18 (3-Player) or *exceeding* 20 (4-Player). This type of bid carries different scoring implications (see Section 6).
     *   Pass. Passing in this round only prevents further bidding *within this first round*.
-4.  **Round 1 Winner (Bidder 1):** The player who makes the highest unchallenged bid (or Honors declaration) in this round. Let their bid be Bid 1.
+4.  **Round 1 Winner (Bidder 1):** The player who makes the highest unchallenged bid (which could be a Normal bid or an Honors bid) in this round. Let their bid be Bid 1.
 5.  **Provisional Trump Selection & Folding:**
     *   Bidder 1 examines their initial 4 cards.
     *   They secretly choose a provisional trump suit (Trump 1).
@@ -67,7 +70,7 @@ The dealer deals cards clockwise in two distinct batches, with a bidding round a
 ### Phase 2: Second Bidding Round & Final Trump Selection
 
 1.  **Eligibility:** Players who did not pass in Round 1 can continue. Players who passed in Round 1 *can* re-enter bidding in Round 2 if they wish, unless they pass again.
-2.  **Starting Bidder:** Bidding typically continues clockwise from where Round 1 ended (confirm convention).
+2.  **Starting Bidder:** Bidding can continue clockwise from where Round 1 ended, **or** Bidder 1 (the winner of the first round) may choose to start the bidding in Round 2. Confirm the convention before starting.
 3.  **Minimum Bid:**
     *   **4-Player:** 24
     *   **3-Player:** 22
@@ -114,21 +117,26 @@ The dealer deals cards clockwise in two distinct batches, with a bidding round a
 2.  **Determine Round Outcome:** Compare the Final Declarer's side's total points against the Final Contract bid.
     *   **Bid Made:** Declarer's points >= Final Contract.
     *   **Bid Failed:** Declarer's points < Final Contract.
-3.  **Award Game Points (Example System - Confirm House Rules):** Accumulate Game Points across rounds.
-    *   **If Final Bid was from Round 1 (below 24/22):**
-        *   Bid Made: +1 Game Point for Declarer('s side).
-        *   Bid Failed: -2 Game Points for Declarer('s side); +1 Game Point for Defender(s).
-    *   **If Final Bid was from Round 2 (>= 24/22):**
-        *   Bid Made: +2 Game Points for Declarer('s side).
-        *   Bid Failed: -3 Game Points for Declarer('s side); +2 Game Points for Defender(s).
-    *   **If Final Bid was "Honors":**
-        *   Bid Made: +3 Game Points for Declarer('s side) (or pre-agreed value).
-        *   Bid Failed: -4 Game Points for Declarer('s side); +3 Game Points for Defender(s) (or pre-agreed value).
-    *   **"Coat" / "Kap" (Optional):** If the Declarer fails the bid by a large margin or scores very few points (define specific conditions), the Game Points lost by the Declarer and gained by the Defenders may be doubled.
+3.  **Award Game Points & Settle Stakes (Confirm House Rules):** Accumulate Game Points and exchange stakes based on the round outcome.
+    *   **If Final Bid was from Round 1:**
+        *   **Normal Bid (<=18 for 3p / <=20 for 4p):**
+            *   Bid Made: +1 Game Point for Declarer('s side). Winning side collects 1 unit of stake from the losing side (or each losing player in 3p).
+            *   Bid Failed: -1 Game Point for Declarer('s side). Declarer('s side) pays 1 unit of stake to the winning side (or each winning player in 3p).
+        *   **Honors Bid (>18 for 3p / >20 for 4p):**
+            *   Bid Made: +2 Game Points for Declarer('s side). Winning side collects 2 units of stake from the losing side (or each losing player in 3p).
+            *   Bid Failed: -2 Game Points for Declarer('s side). Declarer('s side) pays 2 units of stake to the winning side (or each winning player in 3p).
+    *   **If Final Bid was from Round 2 (Minimum Bid 24/22):**
+        *   **4-Player Mode (Min Bid 24):**
+            *   Bid Made: +2 Game Points for Declarer's team. Winning team collects 2 units of stake from the losing team.
+            *   Bid Failed: -3 Game Points for Declarer's team. Losing team pays 3 units of stake to the winning team.
+        *   **3-Player Mode (Min Bid 22):**
+            *   Bid Made: +2 Game Points for Declarer. Declarer collects 2 units of stake *from each* opponent (total 4 units).
+            *   Bid Failed: -4 Game Points for Declarer. Declarer pays 2 units of stake *to each* opponent (total 4 units).
+    *   **"Coat" / "Kap" (Optional):** If the Declarer fails the bid by a large margin or scores very few points (define specific conditions), the Game Points lost/gained and the stakes exchanged may be doubled.
 
 ## 7. Winning the Game
 
-The game continues over multiple rounds. The first team (4p) or potentially individual (3p) to reach a predetermined target number of Game Points (e.g., 6, 8, 10, 12) wins the overall game.
+The game continues over multiple rounds. The first team (4p) or potentially individual (3p) to reach a predetermined target number of Game Points (e.g., 6, 8, 10, 12) wins the overall game. The final settlement of stakes occurs at the end of the game based on the difference in accumulated stakes or overall Game Points, as agreed beforehand.
 
 ## 8. Key Rule Summary & Unique Aspects
 
@@ -139,6 +147,9 @@ The game continues over multiple rounds. The first team (4p) or potentially indi
 *   **Hidden Trump Reveal:** Trump suit is only revealed when requested by a player unable to follow suit, or when the Declarer is forced to play or declare it.
 *   **Original Bidder Leads:** The player to the dealer's right *always* leads the first trick.
 *   **Tiered Scoring:** Game points awarded/lost depend on whether the final bid was made in Round 1 or Round 2 (or was Honors).
+*   **Follow Suit:** To play a card of the same suit as the card led to the trick.
+*   **Honors:** A bid made during the first bidding round that *exceeds* 18 (3-Player) or *exceeds* 20 (4-Player), carrying specific scoring implications if it becomes the final contract.
+*   **Lead:** To play the first card to a trick.
 
 ## 9. Glossary
 
@@ -148,7 +159,7 @@ The game continues over multiple rounds. The first team (4p) or potentially indi
 *   **Defender:** Any player who is not the Declarer (in 3p) or not on the Declarer's team (in 4p).
 *   **Folded Trump Indicator:** The single card placed face-down by the Declarer representing the secret trump suit.
 *   **Follow Suit:** To play a card of the same suit as the card led to the trick.
-*   **Honors:** A special, high-value bid declared based on holding specific powerful cards (requires pre-agreed definition).
+*   **Honors:** A bid made during the first bidding round that *exceeds* 18 (3-Player) or *exceeds* 20 (4-Player), carrying specific scoring implications if it becomes the final contract.
 *   **Lead:** To play the first card to a trick.
 *   **Original Starting Bidder:** The player to the dealer's right, who starts the bidding and leads the first trick.
 *   **Plain Suit:** Any suit that is not the trump suit.
