@@ -12,6 +12,8 @@ const GamePlay = () => {
     gameMode,
     currentPhase,
     currentPlayerIndex,
+    dealerIndex,
+    originalBidderIndex,
     trumpState,
     currentTrick,
     highestBid1,
@@ -21,6 +23,7 @@ const GamePlay = () => {
     selectProvisionalTrump,
     finalizeTrump,
     playCard,
+    requestTrumpReveal,
     startGame,
   } = useGameStore();
 
@@ -46,6 +49,11 @@ const GamePlay = () => {
   // Handle card play
   const handleCardPlay = (card: { id: string }) => {
     playCard(currentPlayer.id, card.id);
+  };
+
+  // Handle trump reveal request
+  const handleRequestTrumpReveal = () => {
+    return requestTrumpReveal();
   };
 
   // Handle provisional trump selection
@@ -103,9 +111,12 @@ const GamePlay = () => {
             <GameBoard
               players={players}
               currentPlayerIndex={currentPlayerIndex}
+              dealerIndex={dealerIndex}
+              originalBidderIndex={originalBidderIndex}
               currentTrick={currentTrick}
               trumpState={trumpState}
               onCardPlay={handleCardPlay}
+              onRequestTrumpReveal={handleRequestTrumpReveal}
               gameMode={gameMode}
             />
           </div>
@@ -135,9 +146,12 @@ const GamePlay = () => {
             <GameBoard
               players={players}
               currentPlayerIndex={currentPlayerIndex}
+              dealerIndex={dealerIndex}
+              originalBidderIndex={originalBidderIndex}
               currentTrick={currentTrick}
               trumpState={trumpState}
               onCardPlay={handleCardPlay}
+              onRequestTrumpReveal={handleRequestTrumpReveal}
               gameMode={gameMode}
             />
           </div>
@@ -172,9 +186,12 @@ const GamePlay = () => {
           <GameBoard
             players={players}
             currentPlayerIndex={currentPlayerIndex}
+            dealerIndex={dealerIndex}
+            originalBidderIndex={originalBidderIndex}
             currentTrick={currentTrick}
             trumpState={trumpState}
             onCardPlay={handleCardPlay}
+            onRequestTrumpReveal={handleRequestTrumpReveal}
             gameMode={gameMode}
           />
         </div>

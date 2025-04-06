@@ -9,6 +9,7 @@ interface CardProps {
   onClick?: (card: CardModel) => void;
   size?: "sm" | "md" | "lg";
   showBack?: boolean;
+  showPointValue?: boolean;
 }
 
 const Card: React.FC<CardProps> = ({
@@ -19,6 +20,7 @@ const Card: React.FC<CardProps> = ({
   onClick,
   size = "md",
   showBack = false,
+  showPointValue = false,
 }) => {
   // Size classes for the card
   const sizeClasses = {
@@ -67,6 +69,21 @@ const Card: React.FC<CardProps> = ({
         alt={card ? `${card.rank} of ${card.suit}` : "Card back"}
         className="w-full h-full object-contain"
       />
+
+      {/* Point value indicator */}
+      {card && showPointValue && card.pointValue > 0 && (
+        <div className="absolute top-0 right-0 bg-yellow-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shadow-md -mt-1 -mr-1">
+          {card.pointValue}
+        </div>
+      )}
+
+      {/* Card order indicator (small at bottom left) */}
+      {card && showPointValue && (
+        <div className="absolute bottom-0 left-0 bg-black bg-opacity-70 text-white rounded-sm px-1 text-[8px] mb-0.5 ml-0.5">
+          #{card.order}
+        </div>
+      )}
+
       {isPlayable && (
         <div className="absolute inset-0 bg-green-500 bg-opacity-10 rounded-lg"></div>
       )}

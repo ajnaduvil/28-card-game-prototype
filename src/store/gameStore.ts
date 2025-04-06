@@ -499,9 +499,52 @@ export const useGameStore = create<GameState & GameActions>()(
 
         // Request trump reveal
         requestTrumpReveal: () => {
-            console.log("Trump reveal requested");
-            // Implement trump reveal request
-            return true; // Placeholder
+            let success = false;
+
+            set(state => {
+                // Only allow trump reveal if:
+                // 1. Trump is not already revealed
+                // 2. Current trick exists
+                // 3. There is a final declarer and trump suit
+                if (
+                    state.trumpState.trumpRevealed ||
+                    !state.currentTrick ||
+                    !state.trumpState.finalDeclarerId ||
+                    !state.trumpState.finalTrumpSuit
+                ) {
+                    return;
+                }
+
+                // Reveal the trump
+                state.trumpState.trumpRevealed = true;
+                success = true;
+
+                // Return the folded card to the declarer's hand if it hasn't been returned yet
+                if (!state.trumpState.foldedCardReturned && state.trumpState.finalTrumpCardId) {
+                    const declarerIndex = state.players.findIndex(
+                        p => p.id === state.trumpState.finalDeclarerId
+                    );
+
+                    if (declarerIndex >= 0) {
+                        // Find the folded card in the deck
+                        const foldedCardIndex = state.deck.findIndex(
+                            card => card.id === state.trumpState.finalTrumpCardId
+                        );
+
+                        if (foldedCardIndex >= 0) {
+                            // Add the card to declarer's hand and remove from deck
+                            const foldedCard = state.deck[foldedCardIndex];
+                            state.players[declarerIndex].hand.push(foldedCard);
+                            state.deck.splice(foldedCardIndex, 1);
+
+                            // Mark as returned
+                            state.trumpState.foldedCardReturned = true;
+                        }
+                    }
+                }
+            });
+
+            return success;
         }
     }))
 ); 

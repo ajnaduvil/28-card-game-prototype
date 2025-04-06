@@ -154,35 +154,50 @@ export const determineTrickWinner = (
     for (let i = 1; i < trick.cards.length; i++) {
         const currentCard = trick.cards[i];
 
-        // If trump is revealed and this is a trump card
+        // Case 1: Trump is revealed and current card is a trump
         if (trumpRevealed && finalTrumpSuit && currentCard.suit === finalTrumpSuit) {
-            // If the winning card is not trump, or this trump is higher
+            // If winning card is not trump, or this trump is higher order (J>9>A>10>K>Q>8>7)
             if (winningCard.suit !== finalTrumpSuit || currentCard.order > winningCard.order) {
                 winningCard = currentCard;
                 winningCardIndex = i;
             }
         }
-        // If the current card is of the lead suit (and not trump, or trump not revealed/applicable)
+        // Case 2: Current card is of the lead suit
         else if (currentCard.suit === trick.leadSuit) {
-            // If winning card is not trump and this card is higher
-            if ((winningCard.suit === trick.leadSuit ||
-                (finalTrumpSuit && !trumpRevealed && winningCard.suit !== finalTrumpSuit)) &&
-                currentCard.order > winningCard.order) {
+            // If winning card is not trump (or trump not revealed), and current card is higher order in lead suit
+            if (
+                (trumpRevealed ? winningCard.suit !== finalTrumpSuit : true) &&
+                (winningCard.suit === trick.leadSuit && currentCard.order > winningCard.order)
+            ) {
+                winningCard = currentCard;
+                winningCardIndex = i;
+            }
+            // If winning card is not lead suit or trump (just a discard)
+            else if (winningCard.suit !== trick.leadSuit &&
+                (!trumpRevealed || winningCard.suit !== finalTrumpSuit)) {
                 winningCard = currentCard;
                 winningCardIndex = i;
             }
         }
-        // If current winning card is neither trump nor lead suit, any lead suit card wins
-        else if (winningCard.suit !== trick.leadSuit &&
-            (!finalTrumpSuit || winningCard.suit !== finalTrumpSuit)) {
-            if (currentCard.suit === trick.leadSuit) {
-                winningCard = currentCard;
-                winningCardIndex = i;
-            }
+        // Case 3: Trump is not revealed but declarer played a trump
+        else if (!trumpRevealed && finalTrumpSuit && currentCard.suit === finalTrumpSuit) {
+            // Declarer's trump always wins if trump not revealed yet
+            // (Only the declarer can play trump when it's not revealed)
+            winningCard = currentCard;
+            winningCardIndex = i;
         }
+        // Case 4: Card is neither trump nor lead suit (a discard)
+        // In this case, the discard cannot win
     }
 
     return winningCardIndex;
+};
+
+/**
+ * Check if a player's hand has any cards of a specific suit
+ */
+export const canFollowSuit = (hand: Card[], suit: Suit): boolean => {
+    return hand.some(card => card.suit === suit);
 };
 
 /**

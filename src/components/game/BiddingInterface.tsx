@@ -25,7 +25,8 @@ const BiddingInterface: React.FC<BiddingInterfaceProps> = ({
 
   // Generate available bid amounts based on game rules
   const generateBidAmounts = (): number[] => {
-    const minBid = round === 1 ? 14 : 14;
+    const minBid = round === 1 ? 14 : gameMode === "3p" ? 22 : 24;
+
     const maxBid = 28;
     const currentHighestBid =
       highestBid && !highestBid.isPass ? highestBid.amount : minBid - 1;

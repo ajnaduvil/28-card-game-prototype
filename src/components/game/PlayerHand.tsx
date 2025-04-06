@@ -2,12 +2,13 @@ import React, { useEffect, useState } from "react";
 import { Card as CardModel } from "../../models/card";
 import Card from "./Card";
 import { Trick, TrumpState } from "../../models/game";
-import { isValidPlay } from "../../services/local/cardUtils";
+import { isValidPlay, canFollowSuit } from "../../services/local/cardUtils";
 
 interface PlayerHandProps {
   hand: CardModel[];
   isCurrentPlayer: boolean;
   onCardPlay?: (card: CardModel) => void;
+  onRequestTrumpReveal?: () => void;
   currentTrick?: Trick | null;
   trumpState?: TrumpState;
   playerId: string;
@@ -18,6 +19,7 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
   hand,
   isCurrentPlayer,
   onCardPlay,
+  onRequestTrumpReveal,
   currentTrick,
   trumpState,
   playerId,
@@ -27,11 +29,13 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
     {}
   );
   const [selectedCard, setSelectedCard] = useState<CardModel | null>(null);
+  const [canAskTrump, setCanAskTrump] = useState<boolean>(false);
 
   // Update playable cards whenever relevant props change
   useEffect(() => {
     if (!isCurrentPlayer || !currentTrick || !trumpState) {
       setPlayableCards({});
+      setCanAskTrump(false);
       return;
     }
 
@@ -47,6 +51,20 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
         finalDeclarerId
       );
     });
+
+    // Check if the player cannot follow suit and is not the declarer
+    // This is when they should be able to ask for trump
+    const canFollow =
+      currentTrick.cards.length > 0 &&
+      canFollowSuit(hand, currentTrick.leadSuit);
+
+    setCanAskTrump(
+      isCurrentPlayer &&
+        !canFollow &&
+        currentTrick.cards.length > 0 &&
+        playerId !== finalDeclarerId &&
+        !trumpState.trumpRevealed
+    );
 
     setPlayableCards(playableMap);
   }, [
@@ -73,6 +91,12 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
     }
   };
 
+  const handleAskTrump = () => {
+    if (onRequestTrumpReveal) {
+      onRequestTrumpReveal();
+    }
+  };
+
   if (hand.length === 0) {
     return (
       <div className="h-24 flex items-center justify-center">No cards</div>
@@ -80,7 +104,16 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
   }
 
   return (
-    <div className="relative player-hand flex justify-center">
+    <div className="relative player-hand flex flex-col items-center">
+      {canAskTrump && (
+        <button
+          onClick={handleAskTrump}
+          className="mb-2 bg-yellow-500 hover:bg-yellow-600 text-white py-1 px-3 rounded text-sm"
+        >
+          Ask Trump?
+        </button>
+      )}
+
       <div className="flex relative" style={{ height: "135px" }}>
         {hand.map((card, index) => {
           const isPlayable = isCurrentPlayer && playableCards[card.id];
@@ -103,6 +136,7 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
                 isSelected={isSelected}
                 onClick={handleCardClick}
                 size="md"
+                showPointValue={isCurrentPlayer}
               />
             </div>
           );

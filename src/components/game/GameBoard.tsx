@@ -8,18 +8,24 @@ import { Card as CardModel } from "../../models/card";
 interface GameBoardProps {
   players: Player[];
   currentPlayerIndex: number;
+  dealerIndex: number;
+  originalBidderIndex: number;
   currentTrick: Trick | null;
   trumpState: TrumpState;
   onCardPlay: (card: CardModel) => void;
+  onRequestTrumpReveal: () => void;
   gameMode: "3p" | "4p";
 }
 
 const GameBoard: React.FC<GameBoardProps> = ({
   players,
   currentPlayerIndex,
+  dealerIndex,
+  originalBidderIndex,
   currentTrick,
   trumpState,
   onCardPlay,
+  onRequestTrumpReveal,
   gameMode,
 }) => {
   // Calculate positions based on game mode
@@ -54,6 +60,15 @@ const GameBoard: React.FC<GameBoardProps> = ({
     }
   };
 
+  // Determine the team/partnership color for 4p mode
+  const getTeamColor = (playerIndex: number) => {
+    if (gameMode !== "4p") return "";
+
+    // In 4p mode, players 0,2 are team 0 and players 1,3 are team 1
+    const teamIndex = playerIndex % 2;
+    return teamIndex === 0 ? "border-blue-500" : "border-red-500";
+  };
+
   return (
     <div className="game-board relative bg-green-800 rounded-xl shadow-lg w-full max-w-4xl h-[600px] mx-auto overflow-hidden">
       <div className="absolute inset-0 opacity-20 pointer-events-none bg-[url('/src/assets/images/card-table-bg.jpg')] bg-cover" />
@@ -67,6 +82,9 @@ const GameBoard: React.FC<GameBoardProps> = ({
       {players.map((player, index) => {
         const position = getPlayerPosition(index);
         const isCurrentPlayer = index === currentPlayerIndex;
+        const isDealer = index === dealerIndex;
+        const isOriginalBidder = index === originalBidderIndex;
+        const teamColor = getTeamColor(index);
 
         return (
           <div
@@ -86,16 +104,27 @@ const GameBoard: React.FC<GameBoardProps> = ({
             } ${isCurrentPlayer ? "z-10" : "z-0"}`}
           >
             <div
-              className={`player-info mb-2 text-white flex items-center justify-between px-2 ${
-                isCurrentPlayer ? "bg-blue-600 rounded-md" : ""
-              }`}
+              className={`player-info mb-2 text-white flex items-center justify-between px-2 rounded-md border-2 ${
+                isCurrentPlayer ? "bg-blue-700" : "bg-gray-800 bg-opacity-70"
+              } ${teamColor}`}
             >
-              <span>
+              <span className="flex items-center gap-1">
                 {player.name}
-                {player.isDealer ? " (Dealer)" : ""}
+                {isDealer && (
+                  <span className="text-xs bg-yellow-600 px-1 rounded ml-1">
+                    D
+                  </span>
+                )}
+                {isOriginalBidder && (
+                  <span className="text-xs bg-purple-600 px-1 rounded ml-1">
+                    B
+                  </span>
+                )}
               </span>
               {isCurrentPlayer && (
-                <span className="text-yellow-300">• Your Turn</span>
+                <span className="text-yellow-300 animate-pulse">
+                  • Your Turn
+                </span>
               )}
             </div>
 
@@ -103,6 +132,9 @@ const GameBoard: React.FC<GameBoardProps> = ({
               hand={player.hand}
               isCurrentPlayer={isCurrentPlayer}
               onCardPlay={isCurrentPlayer ? onCardPlay : undefined}
+              onRequestTrumpReveal={
+                isCurrentPlayer ? onRequestTrumpReveal : undefined
+              }
               currentTrick={currentTrick}
               trumpState={trumpState}
               playerId={player.id}
@@ -126,6 +158,16 @@ const GameBoard: React.FC<GameBoardProps> = ({
           >
             {trumpState.finalTrumpSuit}
           </span>
+        </div>
+      )}
+
+      {/* Folded card indicator (if applicable) */}
+      {(trumpState.provisionalTrumpCardId || trumpState.finalTrumpCardId) && (
+        <div className="absolute top-2 left-2 bg-black bg-opacity-80 rounded-md p-2 shadow-md text-white">
+          <div className="text-xs">Folded Trump Card</div>
+          <div className="w-10 h-14 bg-red-900 rounded-md border border-gray-400 flex items-center justify-center">
+            <span className="text-xs">🃏</span>
+          </div>
         </div>
       )}
     </div>

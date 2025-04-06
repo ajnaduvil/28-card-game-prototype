@@ -7,7 +7,7 @@ interface PlayAreaProps {
   trumpState: TrumpState;
 }
 
-const PlayArea: React.FC<PlayAreaProps> = ({ currentTrick }) => {
+const PlayArea: React.FC<PlayAreaProps> = ({ currentTrick, trumpState }) => {
   if (!currentTrick || currentTrick.cards.length === 0) {
     return (
       <div className="play-area w-64 h-64 rounded-full bg-green-900 border-4 border-green-700 shadow-inner flex items-center justify-center">
@@ -15,6 +15,12 @@ const PlayArea: React.FC<PlayAreaProps> = ({ currentTrick }) => {
       </div>
     );
   }
+
+  // Calculate total points in the current trick
+  const trickPoints = currentTrick.cards.reduce(
+    (sum, card) => sum + card.pointValue,
+    0
+  );
 
   // Position cards in a circle pattern based on position in trick
   const getCardPosition = (index: number, totalCards: number) => {
@@ -35,6 +41,13 @@ const PlayArea: React.FC<PlayAreaProps> = ({ currentTrick }) => {
       {/* Center reference point */}
       <div className="absolute left-1/2 top-1/2 w-1 h-1 -translate-x-1/2 -translate-y-1/2" />
 
+      {/* Total trick points indicator */}
+      {trickPoints > 0 && (
+        <div className="absolute top-2 left-1/2 transform -translate-x-1/2 bg-yellow-500 bg-opacity-90 px-2 py-1 rounded-full text-white text-sm font-bold">
+          {trickPoints} pts
+        </div>
+      )}
+
       {/* Played cards */}
       {currentTrick.cards.map((card, index) => {
         const position = getCardPosition(index, currentTrick.cards.length);
@@ -49,7 +62,7 @@ const PlayArea: React.FC<PlayAreaProps> = ({ currentTrick }) => {
               zIndex: index + 1,
             }}
           >
-            <Card card={card} size="md" />
+            <Card card={card} size="md" showPointValue={true} />
           </div>
         );
       })}
