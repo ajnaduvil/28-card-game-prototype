@@ -126,6 +126,9 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
       console.log(
         `handleCardClick: Card=${card.id}, isDeclarer=${isDeclarer}, trumpRevealed=${trumpState.trumpRevealed}, isTrumpCard=${isTrumpCard}, finalTrumpSuit=${trumpState.finalTrumpSuit}`
       );
+      console.log(
+        `===> Props inside handleCardClick: playerId=${playerId}, finalDeclarerId=${finalDeclarerId}`
+      );
 
       if (isDeclarer && !trumpState.trumpRevealed && isTrumpCard) {
         console.log(">>> Condition met: Showing declarer reveal choice.");
