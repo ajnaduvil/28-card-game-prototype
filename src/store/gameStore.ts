@@ -557,9 +557,10 @@ export const useGameStore = create<GameState & GameActions>()(
                             cards: [],
                             playedBy: [],
                             leaderId: winnerPlayerId,
-                            leadSuit: 'Hearts', // Will be updated when first card is played
+                            leadSuit: 'Hearts', // Placeholder
                             timestamp: Date.now(),
-                            points: 0
+                            points: 0,
+                            playerWhoAskedTrump: null // Reset asker for the new trick
                         };
 
                         state.currentPhase = 'playing_start_trick';
@@ -580,12 +581,18 @@ export const useGameStore = create<GameState & GameActions>()(
         // Request trump reveal
         requestTrumpReveal: () => {
             let success = false;
+            let askerId: string | null = null;
 
             set(state => {
-                // Only allow trump reveal if:
-                // 1. Trump is not already revealed
-                // 2. Current trick exists
-                // 3. There is a final declarer and trump suit
+                // Validate phase
+                if (
+                    state.currentPhase !== 'playing_start_trick' &&
+                    state.currentPhase !== 'playing_in_progress'
+                ) {
+                    return;
+                }
+
+                // Other validations (trump not revealed, trick exists, etc.)
                 if (
                     state.trumpState.trumpRevealed ||
                     !state.currentTrick ||
@@ -595,8 +602,8 @@ export const useGameStore = create<GameState & GameActions>()(
                     return;
                 }
 
-                // Get current player
                 const currentPlayer = state.players[state.currentPlayerIndex];
+                askerId = currentPlayer.id; // Store the asker's ID
 
                 // Validate current player is not the declarer
                 if (currentPlayer.id === state.trumpState.finalDeclarerId) {
@@ -613,9 +620,10 @@ export const useGameStore = create<GameState & GameActions>()(
 
                 // Reveal the trump
                 state.trumpState.trumpRevealed = true;
+                state.currentTrick.playerWhoAskedTrump = askerId; // Set the asker in the trick
                 success = true;
 
-                // Return the folded card to the declarer's hand if it hasn't been returned yet
+                // Return the folded card to the declarer's hand
                 if (!state.trumpState.foldedCardReturned && state.foldedCard) {
                     const declarerIndex = state.players.findIndex(
                         p => p.id === state.trumpState.finalDeclarerId

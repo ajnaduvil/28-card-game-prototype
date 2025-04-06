@@ -27,6 +27,7 @@ export interface Trick {
     winnerId?: string;      // Player who won the trick (if completed)
     timestamp: number;      // When trick started
     points: number;         // Points in the trick
+    playerWhoAskedTrump?: string | null; // ID of player who asked for reveal this trick
 }
 
 export interface TrumpState {

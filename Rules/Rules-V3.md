@@ -98,14 +98,15 @@ The dealer deals cards clockwise in two distinct batches, with a bidding round a
 2.  **Following Suit:** Play proceeds clockwise. Players must play a card of the suit led, if they possess one ("follow suit").
 3.  **Unable to Follow Suit & Trump Reveal:**
     *   **If a Non-Declarer Cannot Follow Suit:** Before playing, they may ask the Final Declarer, "Trump?".
-        *   **Declarer's Response:** The Final Declarer *must* turn their folded trump indicator card face-up, revealing the Final Trump suit to all. The Declarer then picks up this revealed card and adds it to their active hand (now holding 8 cards). The asking player then makes their play (trumping if possible and desired, or discarding).
+        *   **Declarer's Response:** The Final Declarer *must* turn their folded trump indicator card face-up, revealing the Final Trump suit to all. The Declarer then picks up this revealed card and adds it to their active hand (now holding 8 cards).
+        *   **Asker's Play (Crucial Rule):** After the trump is revealed *due to their request*, the asking player **must** play a card of the trump suit if they possess one during that specific trick. If they do not possess any trump cards, they may discard any other card.
         *   Alternatively (less common), a non-declarer unable to follow suit *could* play a card without asking, leaving the trump hidden.
     *   **If the Final Declarer Cannot Follow Suit:**
-        *   **If they hold other cards of the Final Trump suit in their active hand:** They *must* play one of these trump cards. The Declarer may choose whether or not to *also* formally reveal the trump suit by turning over the folded indicator card at this point. If they *do* choose to turn over the indicator card, they must pick it up and add it to their active hand. If they choose *not* to turn over the indicator, the trump suit remains technically unrevealed (until asked or forced later), and the played card functions as a normal card since the trump is not revealed.
-        *   **If their only card of the Final Trump suit is the folded one:** They *must* turn over the folded card (revealing the trump suit) and play it if it's a legal play for the trick. This card functions as trump. They add it back to their active hand after the trick if it wasn't played.
-4.  **Playing Trump (Once Revealed):** Once the Final Trump suit is known:
+        *   **If they hold other cards of the Final Trump suit in their active hand:** They *must* play one of these trump cards. This implicitly reveals the trump suit. The Declarer may choose whether or not to *also* formally turn over the folded indicator card at this point. If they *do* choose to turn over the indicator card, they must pick it up and add it to their active hand.
+        *   **If their only card of the Final Trump suit is the folded one:** They *must* turn over the folded card (revealing the trump suit) and play it if it's a legal play for the trick. This card functions as trump.
+4.  **Playing Trump (Once Revealed - General Rule):** Once the Final Trump suit is known (either by being asked or implicitly revealed by the declarer):
     *   If trump is led, players must follow with trump if possible.
-    *   If a plain suit is led, players must follow that suit. If unable, they may play trump ("ruff") or discard another plain suit card.
+    *   If a plain suit is led, players must follow that suit. If unable, they **may** play trump ("ruff") or discard another plain suit card. *(Note: This general rule differs from the specific rule above for the player who just asked for the reveal).*
 5.  **Winning a Trick:** The highest trump card played wins the trick. If no trump cards are played, the highest card of the suit led wins.
 6.  **Collecting Tricks:** The winner of the trick collects the cards played (3 or 4 cards) and places them face-down.
 7.  **Leading Subsequent Tricks (Tricks 2-8):** The **winner of the previous trick** leads the next trick.

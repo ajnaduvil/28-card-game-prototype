@@ -122,8 +122,19 @@ export const isValidPlay = (
         const hasTrump = finalTrumpSuit ? hand.some(c => c.suit === finalTrumpSuit) : false;
 
         if (trumpRevealed) {
-            // Trump is known, rule says player MAY play trump or discard. Any card is valid.
-            return true;
+            // Trump is revealed.
+            // Check if the CURRENT player is the one who ASKED for the reveal THIS trick.
+            const playerAskedThisTrick = playerId === currentTrick.playerWhoAskedTrump;
+
+            if (playerAskedThisTrick && hasTrump) {
+                // If this player asked and has trump, they MUST play trump.
+                return card.suit === finalTrumpSuit;
+            } else {
+                // Otherwise (either didn't ask, or asked but has no trump),
+                // the general rule applies: MAY play trump or discard.
+                // Any card is valid in this case.
+                return true;
+            }
         } else {
             // Trump is not revealed
             // Declarer MUST play trump if they have it and cannot follow suit
