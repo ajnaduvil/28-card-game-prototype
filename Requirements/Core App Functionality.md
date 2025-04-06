@@ -124,8 +124,12 @@ This document outlines the core functionality required for the 28 online multipl
             *   If unable to follow suit:
                 *   If user is **not** the Declarer: Can play any card (including trump, potentially triggering the "Ask Trump?" prompt if trump is unknown).
                 *   If user **is** the Declarer: Can choose to play **either** a trump card (if available) **or** any card from another plain suit (a discard).
-        *   Clicking a valid card calls `playCard` Cloud Function (`gameId`, `card`).
-        *   Cloud Function performs authoritative validation (`isValidPlay`), updates `currentTrick`, updates player's hand, potentially sets `trumpRevealed` flag (only if Declarer *chooses* to play trump when unable to follow suit), determines trick winner if trick complete, updates scores/tricks won, advances `currentTurnIndex`, and potentially sets `status` to `round_over` if last trick.
+                    *   **If playing a trump card in this situation:** The UI must provide an additional choice: "Play (Keep Hidden)" or "Play & Reveal Trump".
+        *   Clicking a valid card (or choosing an option for the Declarer's trump play) calls the appropriate action:
+            *   Normal play / Declarer keeps hidden: Calls `playCard` Cloud Function (`gameId`, `card`).
+            *   Declarer reveals: Calls `declarerRevealTrump` Cloud Function (`gameId`) **followed by** `playCard` Cloud Function (`gameId`, `card`).
+        *   `playCard` Cloud Function performs authoritative validation (`isValidPlay`), updates `currentTrick`, updates player's hand, determines trick winner if trick complete, updates scores/tricks won, advances `currentTurnIndex`, and potentially sets `status` to `round_over` if last trick. **It no longer automatically reveals trump.**
+        *   `declarerRevealTrump` Cloud Function: Validates the request (is declarer, trump not revealed), sets `trumpRevealed: true`, and handles returning the folded card to the declarer's hand data.
     *   Animate played cards moving to the center trick area.
     *   Update opponent card counts.
 *   **Trump Reveal Mechanism:**
@@ -134,7 +138,7 @@ This document outlines the core functionality required for the 28 online multipl
         *   Clicking calls `requestTrumpReveal` Cloud Function (`gameId`).
         *   Function validates request, sets `trumpRevealed: true`, reveals `trumpSuit` in game state, and potentially adds folded card back to declarer's hand data (adjusting count).
     *   UI reacts to `trumpRevealed` flag: displays the trump suit indicator, potentially shows the revealed folded card visually (briefly or persistently?).
-    *   Declarer implicitly reveals by playing trump when unable to follow suit (handled by `playCard` function).
+    *   Declarer implicitly reveals by playing trump when unable to follow suit (handled by `playCard` function). -> **REMOVED: Declarer reveal is now explicit.**
 *   **Real-time Updates:** All relevant UI elements (scores, tricks won, player hand counts, current trick, turn indicator, revealed trump, game status) update reactively based on Firestore `onSnapshot` data.
 *   **Trick Collection:** Animate the winning player collecting the cards. Store won tricks visually (e.g., a pile near the player).
 

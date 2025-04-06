@@ -27,6 +27,9 @@ interface GameActions {
     // Card playing
     playCard: (playerId: string, cardId: string) => void;
     requestTrumpReveal: () => boolean;
+
+    // Declarer explicitly reveals trump (usually when playing a trump card)
+    declarerRevealTrump: (playerId: string) => boolean;
 }
 
 // Create the store with immer middleware for easier state updates
@@ -469,22 +472,7 @@ export const useGameStore = create<GameState & GameActions>()(
                     state.trumpState.finalDeclarerId
                 )) {
                     console.error("Invalid card play attempt");
-                    // Optionally, provide more specific feedback to the UI here
                     return; // Do not proceed with invalid play
-                }
-
-                // NEW LOGIC: Check if declarer IS revealing trump by playing it WHEN unable to follow suit.
-                const isDeclarer = currentPlayer.id === state.trumpState.finalDeclarerId;
-                let isRevealingTrump = false;
-                if (
-                    isDeclarer &&
-                    !state.trumpState.trumpRevealed && // Trump not already known
-                    state.trumpState.finalTrumpSuit && // Trump suit is set
-                    card.suit === state.trumpState.finalTrumpSuit && // Card played is trump
-                    state.currentTrick.cards.length > 0 && // Not leading the trick
-                    !currentPlayer.hand.some(c => c.suit === state.currentTrick?.leadSuit) // Player *cannot* follow suit
-                ) {
-                    isRevealingTrump = true;
                 }
 
                 // Remove card from player's hand
@@ -499,22 +487,6 @@ export const useGameStore = create<GameState & GameActions>()(
                 // Add card to the trick
                 state.currentTrick.cards.push(card);
                 state.currentTrick.playedBy.push(playerId);
-
-                // Handle trump reveal by declarer IF they played trump when unable to follow suit
-                if (isRevealingTrump) {
-                    state.trumpState.trumpRevealed = true;
-
-                    // Return the folded card to the declarer's hand if it hasn't been returned yet
-                    if (!state.trumpState.foldedCardReturned && state.foldedCard) {
-                        // Check if the card isn't already somehow in hand (safety)
-                        if (!currentPlayer.hand.some(c => c.id === state.foldedCard!.id)) {
-                            currentPlayer.hand.push(state.foldedCard);
-                        }
-                        state.trumpState.foldedCardReturned = true;
-                        // Optional: Clear foldedCard if it represents only the *physical* folded state
-                        // state.foldedCard = undefined; 
-                    }
-                }
 
                 // Check if trick is complete
                 if (state.currentTrick.cards.length === state.players.length) {
@@ -577,7 +549,61 @@ export const useGameStore = create<GameState & GameActions>()(
             return success;
         },
 
-        // Request trump reveal
+        // Declarer explicitly reveals trump (usually when playing a trump card)
+        declarerRevealTrump: (playerId) => {
+            let success = false;
+            set(state => {
+                // Validate phase
+                if (
+                    state.currentPhase !== 'playing_start_trick' &&
+                    state.currentPhase !== 'playing_in_progress'
+                ) {
+                    console.error("Cannot reveal trump outside of playing phase.");
+                    return;
+                }
+
+                // Validate player ID is the final declarer
+                if (playerId !== state.trumpState.finalDeclarerId) {
+                    console.error("Only the declarer can reveal trump this way.");
+                    return;
+                }
+
+                // Validate trump isn't already revealed
+                if (state.trumpState.trumpRevealed) {
+                    console.warn("Trump is already revealed.");
+                    return; // Or maybe still succeed but do nothing?
+                }
+
+                // Validate final trump is set
+                if (!state.trumpState.finalTrumpSuit) {
+                    console.error("Cannot reveal trump, final trump suit not set.");
+                    return;
+                }
+
+                // Reveal the trump
+                state.trumpState.trumpRevealed = true;
+                success = true;
+                console.log(`Declarer ${playerId} revealed trump: ${state.trumpState.finalTrumpSuit}`);
+
+                // Return the folded card to the declarer's hand if it hasn't been returned yet
+                if (!state.trumpState.foldedCardReturned && state.foldedCard) {
+                    const declarerIndex = state.players.findIndex(
+                        p => p.id === state.trumpState.finalDeclarerId
+                    );
+
+                    if (declarerIndex >= 0) {
+                        // Check if the card isn't already somehow in hand (safety)
+                        if (!state.players[declarerIndex].hand.some(c => c.id === state.foldedCard!.id)) {
+                            state.players[declarerIndex].hand.push(state.foldedCard);
+                        }
+                        state.trumpState.foldedCardReturned = true;
+                    }
+                }
+            });
+            return success;
+        },
+
+        // Request trump reveal (by opponent)
         requestTrumpReveal: () => {
             let success = false;
             let askerId: string | null = null;
