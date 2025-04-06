@@ -112,7 +112,11 @@ The dealer deals cards clockwise in two distinct batches, with a bidding round a
 4.  **Playing Trump (Once Revealed - General Rule):** Once the Final Trump suit is known (either by being asked by an opponent or explicitly revealed by the Declarer):
     *   If trump is led, players must follow with trump if possible.
     *   If a plain suit is led, players must follow that suit. If unable, they **may** play trump ("ruff") or discard another plain suit card. *(Note: This general rule differs from the specific rule above for the player who just asked for the reveal).*
-5.  **Winning a Trick:** The highest trump card played wins the trick. If no trump cards are played, the highest card of the suit led wins.
+    *   **Special Case: Only Trump Cards Remain:** If a player cannot follow the suit led, and **all** the cards remaining in their hand belong to the trump suit, they **must** play a trump card.
+        *   This forced play of a trump card **does not**, by itself, reveal the trump suit if it was previously unrevealed.
+        *   If the player is the Declarer, they still retain the option to explicitly reveal the trump suit using the designated action when making this forced trump play (unless it's their absolute last card and it's the folded one).
+    *   **Declarer's Option to Reveal:** The Declarer may choose to explicitly reveal the (previously unrevealed) Final Trump suit via the designated game action **whenever they play a card of the trump suit**, regardless of whether they are following a trump lead or choosing to ruff (play trump when unable to follow a different lead suit). Playing the trump card itself does not automatically reveal the suit.
+5.  **Winning a Trick:** The highest trump card played wins the trick *if the trump suit has been revealed*. If no trump cards are played, or if the trump suit is not revealed, the highest card of the suit led wins.
 6.  **Collecting Tricks:** The winner of the trick collects the cards played (3 or 4 cards) and places them face-down.
 7.  **Leading Subsequent Tricks (Tricks 2-8):** The **winner of the previous trick** leads the next trick.
 

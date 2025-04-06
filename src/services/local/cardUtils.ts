@@ -120,33 +120,32 @@ export const isValidPlay = (
     } else {
         // Cannot follow suit
         const hasTrump = finalTrumpSuit ? hand.some(c => c.suit === finalTrumpSuit) : false;
+        const hasOnlyTrump = hasTrump && hand.every(c => !finalTrumpSuit || c.suit === finalTrumpSuit);
 
+        // --- NEW: Check if player MUST play trump --- 
+        if (hasOnlyTrump && finalTrumpSuit) {
+            // If player cannot follow suit and only has trump cards left, they MUST play trump.
+            return card.suit === finalTrumpSuit;
+        }
+        // --- END NEW CHECK ---
+
+        // --- Existing logic modified slightly ---
         if (trumpRevealed) {
             // Trump is revealed.
-            // Check if the CURRENT player is the one who ASKED for the reveal THIS trick.
             const playerAskedThisTrick = playerId === currentTrick.playerWhoAskedTrump;
 
             if (playerAskedThisTrick && hasTrump) {
                 // If this player asked and has trump, they MUST play trump.
                 return card.suit === finalTrumpSuit;
             } else {
-                // Otherwise (either didn't ask, or asked but has no trump),
-                // the general rule applies: MAY play trump or discard.
-                // Any card is valid in this case.
+                // Otherwise (didn't ask, or asked but no trump, or forced play wasn't needed),
+                // any card is valid (ruff or discard).
                 return true;
             }
         } else {
-            // Trump is not revealed
-            // If the player is the declarer and cannot follow suit, they have the OPTION
-            // to play trump (ruff) or discard another plain suit card.
-            if (isDeclarer) {
-                // Any card is a valid play for the declarer in this situation.
-                return true;
-            } else {
-                // Non-declarer can play any card (ruff or discard) if they cannot follow suit.
-                // Note: Playing trump might trigger the "Ask Trump?" mechanism later.
-                return true;
-            }
+            // Trump is not revealed (and player wasn't forced to play trump above)
+            // Any card is valid (ruff or discard for non-declarer, optional ruff/discard for declarer)
+            return true;
         }
     }
 };

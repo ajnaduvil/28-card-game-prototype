@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Player } from "../../models/player";
 import { Trick, TrumpState } from "../../models/game";
 import PlayerHand from "./PlayerHand";
@@ -14,8 +14,6 @@ interface GameBoardProps {
   currentTrick: Trick | null;
   trumpState: TrumpState;
   foldedCard?: CardModel | null;
-  onCardPlay: (card: CardModel) => void;
-  onRequestTrumpReveal: () => void;
   gameMode: "3p" | "4p";
 }
 
@@ -27,39 +25,16 @@ const GameBoard: React.FC<GameBoardProps> = ({
   currentTrick,
   trumpState,
   foldedCard,
-  onCardPlay,
-  onRequestTrumpReveal,
   gameMode,
 }) => {
   // State to store the trick we should display
-  const [displayTrick, setDisplayTrick] = useState<Trick | null>(null);
+  // const [displayTrick, setDisplayTrick] = useState<Trick | null>(null); // Removed state
 
-  // Direct wrapper for card play that captures the trick before it's cleared
+  /* // Removed function entirely
   const handleCardPlay = (card: CardModel) => {
-    // Only do special handling if we're about to complete a trick
-    const willCompleteTrick =
-      currentTrick && currentTrick.cards.length === players.length - 1;
-
-    if (willCompleteTrick) {
-      // Create a copy of what the completed trick will look like after this card
-      const completedTrick = {
-        ...currentTrick!,
-        cards: [...currentTrick!.cards, card],
-        playedBy: [...currentTrick!.playedBy, players[currentPlayerIndex].id],
-      };
-
-      // Set this as our display trick
-      setDisplayTrick(completedTrick);
-
-      // Set a timeout to clear it
-      setTimeout(() => {
-        setDisplayTrick(null);
-      }, 3000);
-    }
-
-    // Call the original handler
-    onCardPlay(card);
+    ...
   };
+  */
 
   // Calculate positions based on game mode
   const getPlayerPosition = (playerIndex: number) => {
@@ -115,7 +90,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
       {/* Play area in the center */}
       <div className="absolute inset-0 flex items-center justify-center">
         <PlayArea
-          currentTrick={displayTrick || currentTrick}
+          // currentTrick={displayTrick || currentTrick} // Use currentTrick directly
+          currentTrick={currentTrick}
           playerPositions={playerPositions}
         />
       </div>
@@ -201,13 +177,17 @@ const GameBoard: React.FC<GameBoardProps> = ({
               </div>
             )}
 
+            {/* Log props before rendering PlayerHand */}
+            {(() => {
+              console.log(
+                `GameBoard rendering PlayerHand for player index=${index}, id=${player.id}, name=${player.name}. finalDeclarerId=${trumpState.finalDeclarerId}`
+              );
+              return null; // Prevent console.log from returning void in JSX
+            })()}
+
             <PlayerHand
               hand={player.hand}
               isCurrentPlayer={index === currentPlayerIndex}
-              onCardPlay={isCurrentPlayer ? handleCardPlay : undefined}
-              onRequestTrumpReveal={
-                isCurrentPlayer ? onRequestTrumpReveal : undefined
-              }
               currentTrick={currentTrick}
               trumpState={trumpState}
               playerId={player.id}

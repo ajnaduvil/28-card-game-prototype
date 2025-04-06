@@ -122,20 +122,18 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
     if (playableCards[card.id]) {
       const isDeclarer = playerId === finalDeclarerId;
       const isTrumpCard = card.suit === trumpState.finalTrumpSuit;
-      const cannotFollow =
-        currentTrick.cards.length > 0 &&
-        !canFollowSuit(hand, currentTrick.leadSuit as Suit);
 
-      if (
-        isDeclarer &&
-        !trumpState.trumpRevealed &&
-        isTrumpCard &&
-        cannotFollow
-      ) {
+      console.log(
+        `handleCardClick: Card=${card.id}, isDeclarer=${isDeclarer}, trumpRevealed=${trumpState.trumpRevealed}, isTrumpCard=${isTrumpCard}, finalTrumpSuit=${trumpState.finalTrumpSuit}`
+      );
+
+      if (isDeclarer && !trumpState.trumpRevealed && isTrumpCard) {
+        console.log(">>> Condition met: Showing declarer reveal choice.");
         setSelectedCard(card);
         setCardPendingRevealChoice(card);
         setShowDeclarerRevealChoice(true);
       } else {
+        console.log(">>> Condition NOT met: Playing card directly.");
         playCardAction(playerId, card.id);
         setSelectedCard(null);
         setShowDeclarerRevealChoice(false);

@@ -125,6 +125,7 @@ This document outlines the core functionality required for the 28 online multipl
                 *   If user is **not** the Declarer: Can play any card (including trump, potentially triggering the "Ask Trump?" prompt if trump is unknown).
                 *   If user **is** the Declarer: Can choose to play **either** a trump card (if available) **or** any card from another plain suit (a discard).
                     *   **If playing a trump card in this situation:** The UI must provide an additional choice: "Play (Keep Hidden)" or "Play & Reveal Trump".
+            *   **Declarer playing Trump (General):** Whenever the declarer plays a card of the **trump suit** (either following a trump lead or choosing to ruff when unable to follow another suit) and the trump **is not yet revealed**, the UI must provide the choice: "Play (Keep Hidden)" or "Play & Reveal Trump".
         *   Clicking a valid card (or choosing an option for the Declarer's trump play) calls the appropriate action:
             *   Normal play / Declarer keeps hidden: Calls `playCard` Cloud Function (`gameId`, `card`).
             *   Declarer reveals: Calls `declarerRevealTrump` Cloud Function (`gameId`) **followed by** `playCard` Cloud Function (`gameId`, `card`).
