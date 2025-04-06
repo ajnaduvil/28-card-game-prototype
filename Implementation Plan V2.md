@@ -95,12 +95,15 @@ In this phase, we'll focus on building the core game mechanics and a local multi
      id: string;
      name: string;
      position: number;     // 0, 1, 2 (for 3p) or 0, 1, 2, 3 (for 4p)
-     hand: Card[];         // Cards in player's hand
-     activeCardCount: number; // Number of cards player can play (7 for declarer, 8 for others)
+     hand: Card[];         // Cards currently held by the player (updated dynamically)
+     initialHand?: Card[]; // Store the initial 4 cards for provisional trump selection reference if needed
+     // activeCardCount can be derived from hand.length, folded card state, etc.
      isDealer: boolean;    // Whether this player is the dealer
      isOriginalBidder: boolean; // Whether this player is the original bidder (to dealer's right)
-     tricksWon: Card[][];  // Array of tricks (card arrays) won by this player
+     tricksWon: Trick[];   // Array of completed Trick objects won by this player/team
      team?: number;        // 0 or 1 (for 4p mode - partners are (0,2) and (1,3))
+     hasPassedCurrentRound: boolean; // Tracks if player passed in the current bidding round
+     hasPassedRound1?: boolean;    // Specifically tracks if player passed permanently in Round 1
      isConnected?: boolean; // Connection status (for Phase 2)
    }
 
@@ -117,32 +120,41 @@ In this phase, we'll focus on building the core game mechanics and a local multi
    export type GamePhase = 
      'setup' | 
      'dealing1' | 
-     'bidding1' | 
-     'trump_selection_provisional' | 
+     'bidding1_start' | // Start of first bidding round
+     'bidding1_in_progress' | // During first bidding round
+     'bidding1_complete' | // First round bidding done, awaiting provisional trump selection
+     'trump_selection_provisional' | // Bidder 1 selecting provisional trump
      'dealing2' | 
-     'bidding2' | 
-     'trump_selection_final' | 
-     'playing' | 
+     'bidding2_start' | // Start of second bidding round
+     'bidding2_in_progress' | // During second bidding round
+     'bidding2_complete' | // Second round bidding done, awaiting final trump selection
+     'trump_selection_final' | // Final declarer selecting final trump
+     'playing_start_trick' | // Start of a trick
+     'playing_in_progress' | // During a trick
      'round_over' | 
      'game_over';
 
    export interface Trick {
      cards: Card[];          // Cards played in the trick
+     playedBy: string[];     // Player IDs corresponding to cards array
      leaderId: string;       // Player who led the trick
      leadSuit: Suit;         // Suit that was led
      winnerId?: string;      // Player who won the trick (if completed)
      timestamp: number;      // When trick started
+     points: number;         // Points in the trick
    }
 
    export interface TrumpState {
-     provisionalTrumpCard?: Card;    // Card folded in round 1 bidding
-     provisionalTrumpSuit?: Suit;    // Suit of provisional trump
-     finalTrumpCard?: Card;          // Card folded in final trump selection
+     provisionalTrumpCardId?: string; // ID of the card folded in round 1 bidding
+     provisionalTrumpSuit?: Suit;     // Suit of provisional trump
+     finalTrumpCardId?: string;       // ID of the card folded in final trump selection
      finalTrumpSuit?: Suit;          // Final trump suit for the round
      trumpRevealed: boolean;         // Whether trump has been revealed
      provisionalBidderId?: string;   // ID of player who won first bidding round
      finalDeclarerId?: string;       // ID of final declarer
-     keepProvisionalTrump?: boolean; // Whether final declarer kept provisional trump
+     declarerChoseKeep?: boolean;    // Tracks if declarer explicitly chose to keep provisional trump
+     declarerChoseNew?: boolean;     // Tracks if declarer explicitly chose a new trump
+     foldedCardReturned?: boolean;    // Tracks if the folded card has been returned to declarer's hand
    }
 
    export interface RoundScore {
@@ -155,6 +167,7 @@ In this phase, we'll focus on building the core game mechanics and a local multi
      isHonors: boolean;              // Whether final bid was an honors bid
      declarerWon: boolean;           // Whether declarer made the contract
      gamePointsChange: number;       // Game points awarded/deducted
+     stakesChange?: number;          // Optional: stakes exchanged based on rules
      timestamp: number;              // When round was completed
    }
 
@@ -179,6 +192,8 @@ In this phase, we'll focus on building the core game mechanics and a local multi
      originalBidderIndex: number; // Index of original bidder (right of dealer)
      
      deck: Card[];             // Current deck of cards
+     // Keep track of folded cards separately from the deck and player hands
+     foldedCard?: Card;         // The actual card currently folded (for server-side logic)
      
      // Bidding state
      bids1: Bid[];             // First round bids
@@ -191,7 +206,7 @@ In this phase, we'll focus on building the core game mechanics and a local multi
      trumpState: TrumpState;
      
      // Playing state
-     currentTrick: Trick;      // Current trick in progress
+     currentTrick: Trick | null; // Current trick in progress (can be null between tricks)
      completedTricks: Trick[]; // Completed tricks this round
      
      // Scoring
@@ -288,11 +303,15 @@ In this phase, we'll focus on building the core game mechanics and a local multi
    // Determine if a card is a valid play
    export const isValidPlay = (
      card: Card,
+     playerId: string, // Added player ID to check against declarer
      hand: Card[],
      currentTrick: Trick,
-     trumpSuit?: Suit,
-     trumpRevealed: boolean = false
+     trumpState: TrumpState, // Pass the whole trump state object
+     finalDeclarerId?: string // Pass declarer ID
    ): boolean => {
+     const { finalTrumpSuit, trumpRevealed } = trumpState;
+     const isDeclarer = playerId === finalDeclarerId;
+     
      // If this is the first card of the trick, any card is valid
      if (currentTrick.cards.length === 0) return true;
      
@@ -306,25 +325,37 @@ In this phase, we'll focus on building the core game mechanics and a local multi
        return card.suit === leadSuit;
      }
      
-     // If trump is revealed and player has trump, they must play it
-     if (trumpRevealed && trumpSuit) {
-       const hasTrump = hand.some(c => c.suit === trumpSuit);
-       if (hasTrump) {
-         return card.suit === trumpSuit;
-       }
-     }
+     // If player cannot follow suit:
+     const hasTrump = hand.some(c => c.suit === finalTrumpSuit);
      
-     // If player has neither lead suit nor trump, any card is valid
-     return true;
+     // Case 1: Trump suit is known (revealed)
+     if (trumpRevealed && finalTrumpSuit) {
+       // If player has trump, they MUST play a trump card
+       if (hasTrump) {
+         return card.suit === finalTrumpSuit;
+       } else {
+         // If player has no trump, any card is valid (discard)
+         return true;
+       }
+     } 
+     // Case 2: Trump suit is NOT known (not revealed)
+     else { 
+       // Player can play any card (trump or discard), but playing trump doesn't reveal it yet
+       // Exception: Declarer MUST play trump if they have it and cannot follow suit,
+       // potentially revealing it implicitly (handled in playCard logic).
+       // Non-declarers can choose to play trump or discard.
+       // For validation here, any card is technically playable if suit cannot be followed and trump isn't revealed.
+       return true;
+     }
    };
    
    // Determine the winner of a trick
    export const determineTrickWinner = (
-     trick: Trick,
-     trumpSuit?: Suit,
-     trumpRevealed: boolean = false
+     trick: Trick, 
+     trumpState: TrumpState // Pass the whole trump state object
    ): number => {
-     if (trick.cards.length === 0) return -1;
+     const { finalTrumpSuit, trumpRevealed } = trumpState;
+     if (trick.cards.length === 0) return -1; // Should not happen for a completed trick
      
      let winningCardIndex = 0;
      let winningCard = trick.cards[0];
@@ -333,21 +364,27 @@ In this phase, we'll focus on building the core game mechanics and a local multi
        const currentCard = trick.cards[i];
        
        // If trump is revealed and this is a trump card
-       if (trumpRevealed && trumpSuit && currentCard.suit === trumpSuit) {
+       if (trumpRevealed && finalTrumpSuit && currentCard.suit === finalTrumpSuit) {
          // If the winning card is not trump, or this trump is higher
-         if (winningCard.suit !== trumpSuit || currentCard.order > winningCard.order) {
+         if (winningCard.suit !== finalTrumpSuit || currentCard.order > winningCard.order) {
            winningCard = currentCard;
            winningCardIndex = i;
          }
        }
-       // If not trump and same suit as lead card
-       else if (currentCard.suit === trick.leadSuit) {
+       // If the current card is of the lead suit (and not trump, or trump not revealed/applicable)
+       else if (currentCard.suit === trick.leadSuit) { 
          // If winning card is not trump and this card is higher
-         if ((trumpRevealed && winningCard.suit !== trumpSuit) || !trumpRevealed) {
-           if (winningCard.suit === trick.leadSuit && currentCard.order > winningCard.order) {
-             winningCard = currentCard;
-             winningCardIndex = i;
-           }
+         if (winningCard.suit === trick.leadSuit && currentCard.order > winningCard.order) {
+           winningCard = currentCard;
+           winningCardIndex = i;
+         } 
+         // If the current winning card is NOT of the lead suit (must be an unrevealed trump), 
+         // the lead suit card cannot beat it.
+         else if (winningCard.suit !== trick.leadSuit && winningCard.suit !== finalTrumpSuit) { 
+             // This case handles when the first card played was potentially an unrevealed trump.
+             // If the current card follows the actual lead suit, it might win if the first card wasn't trump.
+             // However, for simplicity and following common play, we assume the first card establishes the suit unless trump is revealed.
+             // Let's stick to: if winning card is lead suit, compare; otherwise, lead suit card loses to the current winner.
          }
        }
      }
@@ -388,7 +425,7 @@ In this phase, we'll focus on building the core game mechanics and a local multi
        bids1: [],
        bids2: [],
        trumpState: { trumpRevealed: false },
-       currentTrick: { cards: [], leaderId: '', leadSuit: 'Hearts', timestamp: 0 },
+       currentTrick: null,
        completedTricks: [],
        roundScores: [],
        gameScores: { player1Points: 0, player2Points: 0, player3Points: 0 },
@@ -411,12 +448,15 @@ In this phase, we'll focus on building the core game mechanics and a local multi
              name,
              position: index,
              hand: [],
-             activeCardCount: 0,
+             initialHand: [],
              isDealer: index === 0, // First player is initial dealer
              isOriginalBidder: index === 1, // Player to right of dealer starts bidding
              tricksWon: [],
              // In 4p mode, players 0,2 are team 0 and players 1,3 are team 1
-             team: gameMode === '4p' ? index % 2 : undefined
+             team: gameMode === '4p' ? index % 2 : undefined,
+             hasPassedCurrentRound: false,
+             hasPassedRound1: index === 1,
+             isConnected: index === 0
            }));
            
            state.dealerIndex = 0;
@@ -456,12 +496,7 @@ In this phase, we'll focus on building the core game mechanics and a local multi
            state.trumpState = { trumpRevealed: false };
            
            // Reset trick state
-           state.currentTrick = { 
-             cards: [], 
-             leaderId: state.players[state.originalBidderIndex].id,
-             leadSuit: 'Hearts', // This will be set when first card is played
-             timestamp: Date.now() 
-           };
+           state.currentTrick = null;
            state.completedTricks = [];
            
            // Deal first batch of 4 cards
@@ -471,11 +506,12 @@ In this phase, we'll focus on building the core game mechanics and a local multi
            // Update player hands
            state.players.forEach((player, index) => {
              player.hand = hands[index];
+             player.initialHand = hands[index];
              player.activeCardCount = 4;
            });
            
            state.deck = remainingDeck;
-           state.currentPhase = 'bidding1';
+           state.currentPhase = 'bidding1_start';
          });
        },
        
@@ -492,7 +528,7 @@ In this phase, we'll focus on building the core game mechanics and a local multi
      // Check if a bid qualifies as honors (based on game mode and amount)
      const isHonorsBid = (amount: number, gameMode: '3p' | '4p', currentPhase: GamePhase): boolean => {
        // Honors bids only apply in the first bidding round
-       if (currentPhase !== 'bidding1') return false;
+       if (currentPhase !== 'bidding1_start') return false;
        
        // In 3-player mode, bids over 18 are honors
        if (gameMode === '3p') return amount > 18;
@@ -515,7 +551,7 @@ In this phase, we'll focus on building the core game mechanics and a local multi
        if (!Number.isInteger(amount) || amount < 14 || amount > 28) return false;
        
        // If this is round 2 bidding
-       if (currentPhase === 'bidding2') {
+       if (currentPhase === 'bidding2_start') {
          const minBid = gameMode === '3p' ? 22 : 24;
          
          // If there's no highest bid from round 1, enforce minimum bid
@@ -540,8 +576,8 @@ In this phase, we'll focus on building the core game mechanics and a local multi
          gameMode, bids1, bids2, highestBid1, highestBid2 
        } = state;
        
-       const currentBids = currentPhase === 'bidding1' ? bids1 : bids2;
-       const highestBid = currentPhase === 'bidding1' ? highestBid1 : highestBid2;
+       const currentBids = currentPhase === 'bidding1_start' ? bids1 : bids2;
+       const highestBid = currentPhase === 'bidding1_start' ? highestBid1 : highestBid2;
        
        // Validate bid
        if (!isValidBid(amount, currentPhase, gameMode, highestBid)) {
@@ -560,7 +596,7 @@ In this phase, we'll focus on building the core game mechanics and a local multi
        
        set(state => {
          // Add bid to appropriate array
-         if (currentPhase === 'bidding1') {
+         if (currentPhase === 'bidding1_start') {
            state.bids1.push(bid);
            if (!bid.isPass && (!highestBid1 || bid.amount > highestBid1.amount)) {
              state.highestBid1 = bid;
@@ -594,7 +630,7 @@ In this phase, we'll focus on building the core game mechanics and a local multi
        const { currentPhase, currentPlayerIndex, players, currentTrick, trumpState } = state;
        
        // Validate it's playing phase
-       if (currentPhase !== 'playing') {
+       if (currentPhase !== 'playing_start_trick') {
          console.error('Trump can only be revealed during the playing phase');
          return false;
        }
@@ -628,10 +664,10 @@ In this phase, we'll focus on building the core game mechanics and a local multi
          const declarerIndex = state.players.findIndex(p => p.id === state.trumpState.finalDeclarerId);
          
          // If declarer folded a trump card (and didn't keep provisional), return it to their hand
-         if (!state.trumpState.keepProvisionalTrump && state.trumpState.finalTrumpCard) {
+         if (!state.trumpState.declarerChoseKeep && state.trumpState.finalTrumpCardId) {
            state.players[declarerIndex].hand.push(state.trumpState.finalTrumpCard);
            state.players[declarerIndex].activeCardCount++;
-           state.trumpState.finalTrumpCard = undefined;
+           state.trumpState.finalTrumpCardId = undefined;
          }
        });
        
@@ -647,7 +683,7 @@ In this phase, we'll focus on building the core game mechanics and a local multi
        } = state;
        
        // Validate phase is playing
-       if (currentPhase !== 'playing') {
+       if (currentPhase !== 'playing_in_progress') {
          console.error('Can only play cards during playing phase');
          return false;
        }
@@ -666,8 +702,8 @@ In this phase, we'll focus on building the core game mechanics and a local multi
          card, 
          currentPlayer.hand, 
          currentTrick, 
-         trumpState.finalTrumpSuit, 
-         trumpState.trumpRevealed
+         trumpState, 
+         state.trumpState.finalDeclarerId
        )) {
          console.error('Invalid card play - must follow suit or play trump if possible');
          return false;
@@ -676,7 +712,7 @@ In this phase, we'll focus on building the core game mechanics and a local multi
        // Handle special case: If player is declarer and unable to follow suit
        // and plays a card of the trump suit, trump is revealed
        const isFirstCardInTrick = currentTrick.cards.length === 0;
-       const isDeclarer = currentPlayer.id === trumpState.finalDeclarerId;
+       const isDeclarer = currentPlayer.id === state.trumpState.finalDeclarerId;
        
        // Check if declarer is revealing trump by playing it
        let isRevealingTrump = false;
@@ -710,11 +746,11 @@ In this phase, we'll focus on building the core game mechanics and a local multi
            state.trumpState.trumpRevealed = true;
            
            // If declarer had the folded trump card, add it back to their hand
-           if (state.trumpState.finalTrumpCard && 
-               !state.trumpState.keepProvisionalTrump) {
+           if (state.trumpState.finalTrumpCardId && 
+               !state.trumpState.declarerChoseKeep) {
              state.players[currentPlayerIndex].hand.push(state.trumpState.finalTrumpCard);
              state.players[currentPlayerIndex].activeCardCount++;
-             state.trumpState.finalTrumpCard = undefined;
+             state.trumpState.finalTrumpCardId = undefined;
            }
          }
          
@@ -723,8 +759,7 @@ In this phase, we'll focus on building the core game mechanics and a local multi
            // Determine trick winner
            const winningCardIndex = determineTrickWinner(
              state.currentTrick, 
-             state.trumpState.finalTrumpSuit, 
-             state.trumpState.trumpRevealed
+             state.trumpState
            );
            
            const winnerIndex = (currentPlayerIndex - (state.currentTrick.cards.length - 1) + 
@@ -845,6 +880,7 @@ In this phase, we'll focus on building the core game mechanics and a local multi
          isHonors: finalBid.isHonors,
          declarerWon,
          gamePointsChange,
+         stakesChange: state.stakesChange,
          timestamp: Date.now()
        };
        
@@ -933,7 +969,7 @@ In this phase, we'll focus on building the core game mechanics and a local multi
    const checkBiddingCompletion = (state: GameState) => {
      const { currentPhase, bids1, bids2, highestBid1, players } = state;
      
-     if (currentPhase === 'bidding1') {
+     if (currentPhase === 'bidding1_start') {
        // Handle edge case: if all players pass in first round
        const allPassed = bids1.length >= players.length &&
          bids1.slice(-players.length).every(bid => bid.isPass);
@@ -956,7 +992,7 @@ In this phase, we'll focus on building the core game mechanics and a local multi
          state.currentPlayerIndex = highestBidderIndex;
          state.currentPhase = 'trump_selection_provisional';
        }
-     } else if (currentPhase === 'bidding2') {
+     } else if (currentPhase === 'bidding2_start') {
        // Similar logic for Round 2
        const allPassed = bids2.length >= players.length &&
          bids2.slice(-players.length).every(bid => bid.isPass);
