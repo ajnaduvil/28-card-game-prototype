@@ -84,6 +84,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         const isCurrentPlayer = index === currentPlayerIndex;
         const isDealer = index === dealerIndex;
         const isOriginalBidder = index === originalBidderIndex;
+        const isDeclarer = player.id === trumpState.finalDeclarerId;
         const teamColor = getTeamColor(index);
 
         return (
@@ -127,6 +128,11 @@ const GameBoard: React.FC<GameBoardProps> = ({
                     B
                   </span>
                 )}
+                {isDeclarer && (
+                  <span className="text-xs bg-red-600 px-1 rounded ml-1">
+                    Declarer
+                  </span>
+                )}
               </span>
               {isCurrentPlayer && (
                 <span className="text-yellow-300 font-bold animate-pulse">
@@ -134,6 +140,20 @@ const GameBoard: React.FC<GameBoardProps> = ({
                 </span>
               )}
             </div>
+
+            {/* Player's folded trump card (if they are the declarer) */}
+            {isDeclarer &&
+              (trumpState.provisionalTrumpCardId ||
+                trumpState.finalTrumpCardId) && (
+                <div className="absolute -right-20 top-0 bg-black bg-opacity-70 rounded-md p-2 shadow-lg border border-yellow-500">
+                  <div className="text-xs text-white mb-1 text-center">
+                    Folded Trump
+                  </div>
+                  <div className="w-12 h-16 bg-gray-800 rounded-md border-2 border-yellow-500 flex items-center justify-center rotate-12 shadow-md">
+                    <span className="text-lg">🃏</span>
+                  </div>
+                </div>
+              )}
 
             <PlayerHand
               hand={player.hand}
@@ -146,7 +166,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
               trumpState={trumpState}
               playerId={player.id}
               finalDeclarerId={trumpState.finalDeclarerId}
-              hideCards={index !== 0} // Only show user's cards (index 0), hide all other players' cards
+              hideCards={index !== 0 && index !== currentPlayerIndex} // For local testing: show user's cards (index 0) and current player's cards
             />
           </div>
         );
@@ -166,16 +186,6 @@ const GameBoard: React.FC<GameBoardProps> = ({
           >
             {trumpState.finalTrumpSuit}
           </span>
-        </div>
-      )}
-
-      {/* Folded card indicator (if applicable) */}
-      {(trumpState.provisionalTrumpCardId || trumpState.finalTrumpCardId) && (
-        <div className="absolute top-2 left-2 bg-black bg-opacity-80 rounded-md p-2 shadow-md text-white">
-          <div className="text-xs">Folded Trump Card</div>
-          <div className="w-10 h-14 bg-gray-800 rounded-md border border-gray-600 flex items-center justify-center">
-            <span className="text-xs">🃏</span>
-          </div>
         </div>
       )}
     </div>

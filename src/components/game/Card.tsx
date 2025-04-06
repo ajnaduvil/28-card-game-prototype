@@ -58,7 +58,11 @@ const Card: React.FC<CardProps> = ({
     shadow-md 
     transition-transform 
     ${isSelected ? "transform -translate-y-3 ring-2 ring-blue-500" : ""} 
-    ${isPlayable ? "cursor-pointer hover:shadow-lg" : ""}
+    ${
+      isPlayable
+        ? "cursor-pointer hover:shadow-lg transform -translate-y-2"
+        : ""
+    }
     ${(!isPlayable && isSelectable) || faceDown ? "opacity-70" : ""}
     ${isLeadSuit && !faceDown ? "ring-2 ring-blue-600" : ""}
   `;
@@ -87,10 +91,6 @@ const Card: React.FC<CardProps> = ({
         <div className="absolute bottom-0 left-0 bg-black bg-opacity-70 text-white rounded-sm px-1 text-[8px] mb-0.5 ml-0.5">
           #{card.order}
         </div>
-      )}
-
-      {isPlayable && !faceDown && (
-        <div className="absolute inset-0 bg-green-500 bg-opacity-20 border-2 border-green-600 rounded-lg"></div>
       )}
 
       {/* Lead suit indicator */}
