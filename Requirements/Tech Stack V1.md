@@ -12,7 +12,8 @@
   - Zustand is often simpler for many use cases
 
 ### UI Components & Styling
-- **Component Library**: Chakra UI. These provide pre-built, customizable components (Buttons, Modals, Cards, Inputs, Layout Grids) to speed up UI development and ensure consistency.
+-  **Styling Framework:** Tailwind CSS
+-  **Component Library (Tailwind Plugin):** DaisyUI
 
 ### Routing
 - **React Router**: For handling navigation between different parts of the application (e.g., Login page, Lobby browser, Game screen, Profile page).
