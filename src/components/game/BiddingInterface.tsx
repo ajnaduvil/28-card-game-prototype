@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Bid } from "../../models/bid";
 import { GamePhase } from "../../models/game";
 
@@ -22,6 +22,53 @@ const BiddingInterface: React.FC<BiddingInterfaceProps> = ({
   const [selectedBid, setSelectedBid] = useState<number | null>(null);
   const [isHonors, setIsHonors] = useState(false);
   const honorsThreshold = gameMode === "3p" ? 18 : 20;
+
+  // Draggable panel states
+  const [isDragging, setIsDragging] = useState(false);
+  const [position, setPosition] = useState({ x: 20, y: 20 });
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // Handle mouse events for dragging
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (panelRef.current) {
+      const rect = panelRef.current.getBoundingClientRect();
+      setDragOffset({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      });
+      setIsDragging(true);
+    }
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (isDragging) {
+      setPosition({
+        x: e.clientX - dragOffset.x,
+        y: e.clientY - dragOffset.y,
+      });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // Add and remove event listeners
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+    } else {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDragging]);
 
   // Generate available bid amounts based on game rules
   const generateBidAmounts = (): number[] => {
@@ -77,9 +124,23 @@ const BiddingInterface: React.FC<BiddingInterfaceProps> = ({
   }
 
   return (
-    <div className="bidding-interface bg-gray-800 text-white rounded-lg shadow-md p-2 max-w-md mx-auto absolute top-2 left-2 z-20 bg-opacity-90">
+    <div
+      ref={panelRef}
+      className="bidding-interface bg-gray-800 text-white rounded-lg shadow-md p-2 w-64 absolute z-20 bg-opacity-90 cursor-move"
+      style={{
+        left: `${position.x}px`,
+        top: `${position.y}px`,
+        border: isDragging ? "2px solid #4299e1" : "2px solid transparent",
+        transition: isDragging ? "none" : "border-color 0.2s",
+      }}
+      onMouseDown={handleMouseDown}
+    >
       <div className="text-center mb-2">
-        <h3 className="text-lg font-bold">Round {round} Bidding</h3>
+        <div className="flex justify-between items-center">
+          <div className="w-4 h-4 rounded-full bg-red-500 ml-1" />
+          <h3 className="text-lg font-bold">Round {round} Bidding</h3>
+          <div className="w-4" />
+        </div>
         <p className="text-sm text-gray-300">{currentPlayerName}'s Turn</p>
 
         {highestBid && !highestBid.isPass && (
@@ -96,7 +157,7 @@ const BiddingInterface: React.FC<BiddingInterfaceProps> = ({
         {availableBids.map((amount) => (
           <button
             key={amount}
-            className={`py-1 px-2 text-sm rounded ${
+            className={`py-1 px-2 text-sm rounded cursor-pointer ${
               selectedBid === amount
                 ? "bg-blue-600 text-white"
                 : amount >= honorsThreshold
@@ -113,7 +174,7 @@ const BiddingInterface: React.FC<BiddingInterfaceProps> = ({
 
       <div className="flex justify-between">
         <button
-          className="bg-red-700 hover:bg-red-600 text-white py-1 px-3 rounded text-sm"
+          className="bg-red-700 hover:bg-red-600 text-white py-1 px-3 rounded text-sm cursor-pointer"
           onClick={handlePass}
           data-testid="pass-button"
         >
@@ -122,7 +183,9 @@ const BiddingInterface: React.FC<BiddingInterfaceProps> = ({
 
         <button
           className={`bg-green-700 hover:bg-green-600 text-white py-1 px-3 rounded text-sm ${
-            selectedBid === null ? "opacity-50 cursor-not-allowed" : ""
+            selectedBid === null
+              ? "opacity-50 cursor-not-allowed"
+              : "cursor-pointer"
           }`}
           onClick={handleSubmitBid}
           disabled={selectedBid === null}

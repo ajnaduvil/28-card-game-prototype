@@ -18,6 +18,7 @@ const GamePlay = () => {
     currentTrick,
     highestBid1,
     highestBid2,
+    bids2,
     foldedCard,
     processBid,
     selectProvisionalTrump,
@@ -77,6 +78,10 @@ const GamePlay = () => {
     currentPhase === "bidding2_start" ||
     currentPhase === "bidding2_in_progress";
 
+  // Check if there was new bidding in round 2
+  // If there are bids in round 2 that are not passes, then there was new bidding
+  const newBiddingInRound2 = bids2 && bids2.some((bid) => !bid.isPass);
+
   return (
     <div className="min-h-screen bg-green-900 p-4">
       <div className="bg-green-800 rounded-lg p-4 mb-4 text-white">
@@ -103,38 +108,38 @@ const GamePlay = () => {
         </div>
       )}
 
-      {/* Bidding phases */}
-      {(isBiddingRound1 || isBiddingRound2) && (
-        <div className="flex flex-col items-center">
-          {/* Game board in the background */}
-          <div className="w-full">
-            <GameBoard
-              players={players}
-              currentPlayerIndex={currentPlayerIndex}
-              dealerIndex={dealerIndex}
-              originalBidderIndex={originalBidderIndex}
-              currentTrick={currentTrick}
-              trumpState={trumpState}
-              onCardPlay={handleCardPlay}
-              onRequestTrumpReveal={handleRequestTrumpReveal}
-              gameMode={gameMode}
-            />
-          </div>
-
-          {/* Bidding interface in the foreground */}
-          <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2 w-full max-w-lg">
-            <BiddingInterface
-              currentPlayerName={currentPlayer.name}
-              highestBid={
-                isBiddingRound1 ? highestBid1 || null : highestBid2 || null
-              }
-              onBid={handleBid}
-              gameMode={gameMode}
-              currentPhase={currentPhase}
-              round={isBiddingRound1 ? 1 : 2}
-            />
-          </div>
+      {/* Game board for bidding and playing phases */}
+      {(isBiddingRound1 ||
+        isBiddingRound2 ||
+        currentPhase === "playing_start_trick" ||
+        currentPhase === "playing_in_progress") && (
+        <div className="w-full">
+          <GameBoard
+            players={players}
+            currentPlayerIndex={currentPlayerIndex}
+            dealerIndex={dealerIndex}
+            originalBidderIndex={originalBidderIndex}
+            currentTrick={currentTrick}
+            trumpState={trumpState}
+            onCardPlay={handleCardPlay}
+            onRequestTrumpReveal={handleRequestTrumpReveal}
+            gameMode={gameMode}
+          />
         </div>
+      )}
+
+      {/* Floating draggable bidding interface */}
+      {(isBiddingRound1 || isBiddingRound2) && (
+        <BiddingInterface
+          currentPlayerName={currentPlayer.name}
+          highestBid={
+            isBiddingRound1 ? highestBid1 || null : highestBid2 || null
+          }
+          onBid={handleBid}
+          gameMode={gameMode}
+          currentPhase={currentPhase}
+          round={isBiddingRound1 ? 1 : 2}
+        />
       )}
 
       {/* Trump selection phases */}
@@ -174,26 +179,9 @@ const GamePlay = () => {
               foldedCard={foldedCard}
               currentPhase={currentPhase}
               playerName={currentPlayer.name}
+              newBiddingInRound2={newBiddingInRound2}
             />
           </div>
-        </div>
-      )}
-
-      {/* Playing phases */}
-      {(currentPhase === "playing_start_trick" ||
-        currentPhase === "playing_in_progress") && (
-        <div className="w-full">
-          <GameBoard
-            players={players}
-            currentPlayerIndex={currentPlayerIndex}
-            dealerIndex={dealerIndex}
-            originalBidderIndex={originalBidderIndex}
-            currentTrick={currentTrick}
-            trumpState={trumpState}
-            onCardPlay={handleCardPlay}
-            onRequestTrumpReveal={handleRequestTrumpReveal}
-            gameMode={gameMode}
-          />
         </div>
       )}
 

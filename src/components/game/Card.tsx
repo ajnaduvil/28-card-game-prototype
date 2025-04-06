@@ -6,6 +6,7 @@ interface CardProps {
   isSelectable?: boolean;
   isSelected?: boolean;
   isPlayable?: boolean;
+  isLeadSuit?: boolean;
   onClick?: (card: CardModel) => void;
   size?: "sm" | "md" | "lg";
   showBack?: boolean;
@@ -18,6 +19,7 @@ const Card: React.FC<CardProps> = ({
   isSelectable = false,
   isSelected = false,
   isPlayable = false,
+  isLeadSuit = false,
   onClick,
   size = "md",
   showBack = false,
@@ -58,6 +60,7 @@ const Card: React.FC<CardProps> = ({
     ${isSelected ? "transform -translate-y-3 ring-2 ring-blue-500" : ""} 
     ${isPlayable ? "cursor-pointer hover:shadow-lg" : ""}
     ${(!isPlayable && isSelectable) || faceDown ? "opacity-70" : ""}
+    ${isLeadSuit && !faceDown ? "ring-2 ring-blue-600" : ""}
   `;
 
   return (
@@ -88,6 +91,13 @@ const Card: React.FC<CardProps> = ({
 
       {isPlayable && !faceDown && (
         <div className="absolute inset-0 bg-green-500 bg-opacity-10 rounded-lg"></div>
+      )}
+
+      {/* Lead suit indicator */}
+      {isLeadSuit && !faceDown && !isSelected && (
+        <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-md">
+          L
+        </div>
       )}
     </div>
   );

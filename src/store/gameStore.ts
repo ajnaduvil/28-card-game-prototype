@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import { Card } from '../models/card';
 import { GameState } from '../models/game';
 import { Bid } from '../models/bid';
 import {
@@ -31,7 +30,7 @@ interface GameActions {
 
 // Create the store with immer middleware for easier state updates
 export const useGameStore = create<GameState & GameActions>()(
-    immer((set, get) => ({
+    immer((set) => ({
         // Initial state
         id: '',
         createdAt: Date.now(),
@@ -45,9 +44,9 @@ export const useGameStore = create<GameState & GameActions>()(
         deck: [],
         bids1: [],
         bids2: [],
-        highestBid1: null,
-        highestBid2: null,
-        finalBid: null,
+        highestBid1: undefined,
+        highestBid2: undefined,
+        finalBid: undefined,
         trumpState: { trumpRevealed: false },
         currentTrick: null,
         completedTricks: [],
@@ -84,6 +83,7 @@ export const useGameStore = create<GameState & GameActions>()(
                     // In 4p mode, players 0,2 are team 0 and players 1,3 are team 1
                     team: gameMode === '4p' ? index % 2 : undefined,
                     hasPassedCurrentRound: false,
+                    hasPassedRound1: false,
                     isConnected: true
                 }));
 
@@ -124,9 +124,9 @@ export const useGameStore = create<GameState & GameActions>()(
                 // Reset bidding and trump state
                 state.bids1 = [];
                 state.bids2 = [];
-                state.highestBid1 = null;
-                state.highestBid2 = null;
-                state.finalBid = null;
+                state.highestBid1 = undefined;
+                state.highestBid2 = undefined;
+                state.finalBid = undefined;
 
                 state.trumpState = { trumpRevealed: false };
 
@@ -200,7 +200,7 @@ export const useGameStore = create<GameState & GameActions>()(
                         }
                     }
 
-                    // Check if bidding round is over (all but one player passed)
+                    // Check if bidding round is over
                     const remainingBidders = state.players.filter(p => !p.hasPassedCurrentRound);
 
                     if (remainingBidders.length === 1) {
@@ -243,31 +243,47 @@ export const useGameStore = create<GameState & GameActions>()(
                         }
                     }
 
-                    // Check if bidding round is over (all but one player passed)
+                    // Check if bidding round is over
                     const remainingBidders = state.players.filter(
                         p => !p.hasPassedCurrentRound && !p.hasPassedRound1
                     );
 
-                    if (remainingBidders.length === 1) {
-                        // Only one player left, they won the bidding
-                        state.currentPhase = 'bidding2_complete';
+                    // If only one bidder left OR everyone has passed, end round 2
+                    if (remainingBidders.length <= 1) {
+                        if (remainingBidders.length === 1) {
+                            // One player remained - they won the bidding
+                            const finalDeclarerId = remainingBidders[0].id;
+                            state.trumpState.finalDeclarerId = finalDeclarerId;
 
-                        // Update trump state with final declarer
-                        const finalDeclarerId = remainingBidders[0].id;
-                        state.trumpState.finalDeclarerId = finalDeclarerId;
+                            // Check if final declarer is the same as provisional bidder
+                            const sameDeclarers = finalDeclarerId === state.trumpState.provisionalBidderId;
 
-                        // Check if final declarer is the same as provisional bidder
-                        const sameDeclarers = finalDeclarerId === state.trumpState.provisionalBidderId;
+                            if (sameDeclarers && state.trumpState.provisionalTrumpSuit) {
+                                // If same declarer, auto-reveal trump
+                                state.trumpState.trumpRevealed = true;
+                                state.trumpState.finalTrumpSuit = state.trumpState.provisionalTrumpSuit;
+                                state.trumpState.finalTrumpCardId = state.trumpState.provisionalTrumpCardId;
+                                state.trumpState.declarerChoseKeep = true;
+                            }
 
-                        if (sameDeclarers && state.trumpState.provisionalTrumpSuit) {
-                            // If same declarer, auto-reveal trump
-                            state.trumpState.trumpRevealed = true;
-                            state.trumpState.finalTrumpSuit = state.trumpState.provisionalTrumpSuit;
-                            state.trumpState.finalTrumpCardId = state.trumpState.provisionalTrumpCardId;
-                            state.trumpState.declarerChoseKeep = true;
+                            state.currentPhase = 'bidding2_complete';
+                            state.currentPlayerIndex = state.players.findIndex(p => p.id === finalDeclarerId);
+                        } else {
+                            // Everyone passed - use the result from first round if available
+                            if (state.highestBid1 && state.trumpState.provisionalBidderId) {
+                                const provisionalBidderId = state.trumpState.provisionalBidderId;
+                                state.trumpState.finalDeclarerId = provisionalBidderId;
+                                state.trumpState.finalTrumpSuit = state.trumpState.provisionalTrumpSuit;
+                                state.trumpState.declarerChoseKeep = true;
+                                state.finalBid = state.highestBid1;
+
+                                state.currentPhase = 'bidding2_complete';
+                                state.currentPlayerIndex = state.players.findIndex(p => p.id === provisionalBidderId);
+                            } else {
+                                // This shouldn't happen in a normal game - reset
+                                console.error("Invalid game state: no bids in either round");
+                            }
                         }
-
-                        state.currentPlayerIndex = state.players.findIndex(p => p.id === finalDeclarerId);
                     } else {
                         // Bidding continues
                         state.currentPhase = 'bidding2_in_progress';

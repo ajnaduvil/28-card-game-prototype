@@ -32,16 +32,21 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
   );
   const [selectedCard, setSelectedCard] = useState<CardModel | null>(null);
   const [canAskTrump, setCanAskTrump] = useState<boolean>(false);
+  const [leadSuitCards, setLeadSuitCards] = useState<Record<string, boolean>>(
+    {}
+  );
 
   // Update playable cards whenever relevant props change
   useEffect(() => {
     if (!isCurrentPlayer || !currentTrick || !trumpState) {
       setPlayableCards({});
       setCanAskTrump(false);
+      setLeadSuitCards({});
       return;
     }
 
     const playableMap: Record<string, boolean> = {};
+    const leadSuitMap: Record<string, boolean> = {};
 
     hand.forEach((card) => {
       playableMap[card.id] = isValidPlay(
@@ -52,6 +57,14 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
         trumpState,
         finalDeclarerId
       );
+
+      // Mark cards of the lead suit
+      if (
+        currentTrick.cards.length > 0 &&
+        currentTrick.leadSuit === card.suit
+      ) {
+        leadSuitMap[card.id] = true;
+      }
     });
 
     // Check if the player cannot follow suit and is not the declarer
@@ -69,6 +82,7 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
     );
 
     setPlayableCards(playableMap);
+    setLeadSuitCards(leadSuitMap);
   }, [
     hand,
     isCurrentPlayer,
@@ -116,31 +130,46 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
         </button>
       )}
 
+      {/* Lead suit indicator */}
+      {currentTrick &&
+        currentTrick.cards.length > 0 &&
+        currentTrick.leadSuit && (
+          <div className="mb-2 px-3 py-1 bg-blue-600 text-white rounded-full text-sm shadow-md">
+            Lead Suit: {currentTrick.leadSuit}
+          </div>
+        )}
+
       <div className="flex relative" style={{ height: "135px" }}>
         {hand.map((card, index) => {
           const isPlayable = isCurrentPlayer && playableCards[card.id];
           const isSelected = selectedCard?.id === card.id;
+          const isLeadSuit = leadSuitCards[card.id];
           const offset = Math.min(20, 200 / hand.length); // Dynamically calculate offset based on hand size
 
           return (
             <div
               key={card.id}
-              className="absolute transition-all duration-300"
+              className={`absolute transition-all duration-300 ${
+                isLeadSuit ? "transform hover:-translate-y-2" : ""
+              }`}
               style={{
                 left: `${index * offset}px`,
                 zIndex: isSelected ? 10 : index,
               }}
             >
-              <Card
-                card={hideCards ? undefined : card}
-                isPlayable={isPlayable}
-                isSelectable={isCurrentPlayer}
-                isSelected={isSelected}
-                onClick={handleCardClick}
-                size="md"
-                showPointValue={isCurrentPlayer && !hideCards}
-                faceDown={hideCards}
-              />
+              <div className="relative">
+                <Card
+                  card={hideCards ? undefined : card}
+                  isPlayable={isPlayable}
+                  isSelectable={isCurrentPlayer}
+                  isSelected={isSelected}
+                  isLeadSuit={isLeadSuit}
+                  onClick={handleCardClick}
+                  size="md"
+                  showPointValue={isCurrentPlayer && !hideCards}
+                  faceDown={hideCards}
+                />
+              </div>
             </div>
           );
         })}

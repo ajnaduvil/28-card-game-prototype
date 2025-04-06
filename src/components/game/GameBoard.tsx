@@ -130,7 +130,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
             <PlayerHand
               hand={player.hand}
-              isCurrentPlayer={true} // Show all cards in local play
+              isCurrentPlayer={index === currentPlayerIndex}
               onCardPlay={isCurrentPlayer ? onCardPlay : undefined}
               onRequestTrumpReveal={
                 isCurrentPlayer ? onRequestTrumpReveal : undefined
@@ -139,7 +139,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
               trumpState={trumpState}
               playerId={player.id}
               finalDeclarerId={trumpState.finalDeclarerId}
-              hideCards={!isCurrentPlayer && index !== currentPlayerIndex} // Only hide cards of players who don't have the turn
+              hideCards={index !== 0 && index !== currentPlayerIndex} // Hide cards except for user's hand (index 0) and current player
             />
           </div>
         );
