@@ -10,6 +10,7 @@ interface CardProps {
   size?: "sm" | "md" | "lg";
   showBack?: boolean;
   showPointValue?: boolean;
+  faceDown?: boolean;
 }
 
 const Card: React.FC<CardProps> = ({
@@ -21,6 +22,7 @@ const Card: React.FC<CardProps> = ({
   size = "md",
   showBack = false,
   showPointValue = false,
+  faceDown = false,
 }) => {
   // Size classes for the card
   const sizeClasses = {
@@ -31,7 +33,7 @@ const Card: React.FC<CardProps> = ({
 
   // Get the SVG path based on card ID
   const getCardImage = () => {
-    if (showBack || !card) {
+    if (showBack || faceDown || !card) {
       return "/src/assets/cards/1B.svg"; // Back of card
     }
 
@@ -55,7 +57,7 @@ const Card: React.FC<CardProps> = ({
     transition-transform 
     ${isSelected ? "transform -translate-y-3 ring-2 ring-blue-500" : ""} 
     ${isPlayable ? "cursor-pointer hover:shadow-lg" : ""}
-    ${!isPlayable && isSelectable ? "opacity-70" : ""}
+    ${(!isPlayable && isSelectable) || faceDown ? "opacity-70" : ""}
   `;
 
   return (
@@ -66,25 +68,25 @@ const Card: React.FC<CardProps> = ({
     >
       <img
         src={getCardImage()}
-        alt={card ? `${card.rank} of ${card.suit}` : "Card back"}
+        alt={card && !faceDown ? `${card.rank} of ${card.suit}` : "Card back"}
         className="w-full h-full object-contain"
       />
 
       {/* Point value indicator */}
-      {card && showPointValue && card.pointValue > 0 && (
+      {card && showPointValue && card.pointValue > 0 && !faceDown && (
         <div className="absolute top-0 right-0 bg-yellow-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shadow-md -mt-1 -mr-1">
           {card.pointValue}
         </div>
       )}
 
       {/* Card order indicator (small at bottom left) */}
-      {card && showPointValue && (
+      {card && showPointValue && !faceDown && (
         <div className="absolute bottom-0 left-0 bg-black bg-opacity-70 text-white rounded-sm px-1 text-[8px] mb-0.5 ml-0.5">
           #{card.order}
         </div>
       )}
 
-      {isPlayable && (
+      {isPlayable && !faceDown && (
         <div className="absolute inset-0 bg-green-500 bg-opacity-10 rounded-lg"></div>
       )}
     </div>

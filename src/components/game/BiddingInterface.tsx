@@ -56,7 +56,11 @@ const BiddingInterface: React.FC<BiddingInterfaceProps> = ({
   };
 
   const handlePass = () => {
+    // Ensure we're explicitly passing null for the bid amount
     onBid(null, false);
+    // Reset selected bid
+    setSelectedBid(null);
+    setIsHonors(false);
   };
 
   // Determine if the bidding phase is active
@@ -68,36 +72,36 @@ const BiddingInterface: React.FC<BiddingInterfaceProps> = ({
 
   if (!isBiddingPhase) {
     return (
-      <div className="text-center p-4">Waiting for bidding to start...</div>
+      <div className="text-center p-2">Waiting for bidding to start...</div>
     );
   }
 
   return (
-    <div className="bidding-interface bg-white rounded-lg shadow-md p-4 w-full max-w-lg mx-auto">
-      <div className="text-center mb-4">
-        <h3 className="text-xl font-bold">Round {round} Bidding</h3>
-        <p className="text-gray-600">{currentPlayerName}'s Turn to Bid</p>
+    <div className="bidding-interface bg-gray-800 text-white rounded-lg shadow-md p-2 max-w-md mx-auto absolute top-2 left-2 z-20 bg-opacity-90">
+      <div className="text-center mb-2">
+        <h3 className="text-lg font-bold">Round {round} Bidding</h3>
+        <p className="text-sm text-gray-300">{currentPlayerName}'s Turn</p>
 
         {highestBid && !highestBid.isPass && (
-          <div className="mt-2 p-2 bg-blue-100 rounded">
-            <span className="font-medium">Current Highest Bid: </span>
-            <span className="font-bold text-blue-700">
-              {highestBid.amount} {highestBid.isHonors ? "(Honors)" : ""}
+          <div className="mt-1 p-1 bg-blue-900 rounded text-sm">
+            <span>Highest: </span>
+            <span className="font-bold text-blue-300">
+              {highestBid.amount} {highestBid.isHonors ? "★" : ""}
             </span>
           </div>
         )}
       </div>
 
-      <div className="bid-amounts grid grid-cols-4 gap-2 mb-4">
+      <div className="bid-amounts grid grid-cols-5 gap-1 mb-2">
         {availableBids.map((amount) => (
           <button
             key={amount}
-            className={`py-2 px-3 rounded ${
+            className={`py-1 px-2 text-sm rounded ${
               selectedBid === amount
                 ? "bg-blue-600 text-white"
                 : amount >= honorsThreshold
-                ? "bg-purple-100 border border-purple-300 hover:bg-purple-200"
-                : "bg-gray-100 border border-gray-300 hover:bg-gray-200"
+                ? "bg-purple-700 text-white hover:bg-purple-600"
+                : "bg-gray-700 text-gray-200 hover:bg-gray-600"
             }`}
             onClick={() => handleBidClick(amount)}
           >
@@ -109,40 +113,24 @@ const BiddingInterface: React.FC<BiddingInterfaceProps> = ({
 
       <div className="flex justify-between">
         <button
-          className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded"
+          className="bg-red-700 hover:bg-red-600 text-white py-1 px-3 rounded text-sm"
           onClick={handlePass}
+          data-testid="pass-button"
         >
           Pass
         </button>
 
         <button
-          className={`bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded ${
+          className={`bg-green-700 hover:bg-green-600 text-white py-1 px-3 rounded text-sm ${
             selectedBid === null ? "opacity-50 cursor-not-allowed" : ""
           }`}
           onClick={handleSubmitBid}
           disabled={selectedBid === null}
+          data-testid="submit-bid-button"
         >
-          Bid {selectedBid} {isHonors ? "(Honors)" : ""}
+          Bid {selectedBid} {isHonors ? "★" : ""}
         </button>
       </div>
-
-      {round === 1 && (
-        <div className="mt-4 text-gray-600 text-sm">
-          <p>
-            After winning Round 1 bidding, you'll select a card to fold that
-            sets the provisional trump suit.
-          </p>
-        </div>
-      )}
-
-      {round === 2 && (
-        <div className="mt-4 text-gray-600 text-sm">
-          <p>
-            After winning Round 2 bidding, you'll be the declarer and can choose
-            to keep or change the trump suit.
-          </p>
-        </div>
-      )}
     </div>
   );
 };

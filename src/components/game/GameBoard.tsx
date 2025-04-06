@@ -70,8 +70,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
   };
 
   return (
-    <div className="game-board relative bg-green-800 rounded-xl shadow-lg w-full max-w-4xl h-[600px] mx-auto overflow-hidden">
-      <div className="absolute inset-0 opacity-20 pointer-events-none bg-[url('/src/assets/images/card-table-bg.jpg')] bg-cover" />
+    <div className="game-board relative bg-gray-900 rounded-xl shadow-lg w-full max-w-5xl h-[700px] mx-auto overflow-hidden">
+      <div className="absolute inset-0 opacity-10 pointer-events-none bg-[url('/src/assets/images/card-table-bg.jpg')] bg-cover" />
 
       {/* Play area in the center */}
       <div className="absolute inset-0 flex items-center justify-center">
@@ -91,21 +91,21 @@ const GameBoard: React.FC<GameBoardProps> = ({
             key={player.id}
             className={`absolute transition-all duration-300 ${
               position === "bottom"
-                ? "bottom-2 left-1/2 -translate-x-1/2 w-80"
+                ? "bottom-2 left-1/2 -translate-x-1/2 w-96"
                 : position === "top"
-                ? "top-2 left-1/2 -translate-x-1/2 w-80 rotate-180"
+                ? "top-2 left-1/2 -translate-x-1/2 w-96 rotate-180"
                 : position === "left"
-                ? "left-2 top-1/2 -translate-y-1/2 w-80 -rotate-90"
+                ? "left-2 top-1/2 -translate-y-1/2 w-96 -rotate-90"
                 : position === "right"
-                ? "right-2 top-1/2 -translate-y-1/2 w-80 rotate-90"
+                ? "right-2 top-1/2 -translate-y-1/2 w-96 rotate-90"
                 : position === "top-left"
-                ? "top-6 left-6 w-80 -rotate-30"
-                : "top-6 right-6 w-80 rotate-30" // top-right
+                ? "top-6 left-6 w-96 -rotate-30"
+                : "top-6 right-6 w-96 rotate-30" // top-right
             } ${isCurrentPlayer ? "z-10" : "z-0"}`}
           >
             <div
               className={`player-info mb-2 text-white flex items-center justify-between px-2 rounded-md border-2 ${
-                isCurrentPlayer ? "bg-blue-700" : "bg-gray-800 bg-opacity-70"
+                isCurrentPlayer ? "bg-blue-900" : "bg-gray-800 bg-opacity-70"
               } ${teamColor}`}
             >
               <span className="flex items-center gap-1">
@@ -130,7 +130,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
             <PlayerHand
               hand={player.hand}
-              isCurrentPlayer={isCurrentPlayer}
+              isCurrentPlayer={true} // Show all cards in local play
               onCardPlay={isCurrentPlayer ? onCardPlay : undefined}
               onRequestTrumpReveal={
                 isCurrentPlayer ? onRequestTrumpReveal : undefined
@@ -139,6 +139,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
               trumpState={trumpState}
               playerId={player.id}
               finalDeclarerId={trumpState.finalDeclarerId}
+              hideCards={!isCurrentPlayer && index !== currentPlayerIndex} // Only hide cards of players who don't have the turn
             />
           </div>
         );
@@ -146,14 +147,14 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
       {/* Trump indicator */}
       {trumpState.trumpRevealed && trumpState.finalTrumpSuit && (
-        <div className="absolute top-2 right-2 bg-white bg-opacity-80 rounded-md p-2 shadow-md">
+        <div className="absolute top-2 right-2 bg-black bg-opacity-80 rounded-md p-2 shadow-md text-white">
           <span className="font-bold">Trump: </span>
           <span
             className={`${
               trumpState.finalTrumpSuit === "Hearts" ||
               trumpState.finalTrumpSuit === "Diamonds"
-                ? "text-red-600"
-                : "text-gray-900"
+                ? "text-red-500"
+                : "text-blue-300"
             }`}
           >
             {trumpState.finalTrumpSuit}
@@ -165,7 +166,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
       {(trumpState.provisionalTrumpCardId || trumpState.finalTrumpCardId) && (
         <div className="absolute top-2 left-2 bg-black bg-opacity-80 rounded-md p-2 shadow-md text-white">
           <div className="text-xs">Folded Trump Card</div>
-          <div className="w-10 h-14 bg-red-900 rounded-md border border-gray-400 flex items-center justify-center">
+          <div className="w-10 h-14 bg-gray-800 rounded-md border border-gray-600 flex items-center justify-center">
             <span className="text-xs">🃏</span>
           </div>
         </div>

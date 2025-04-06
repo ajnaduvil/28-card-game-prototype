@@ -7,10 +7,10 @@ interface PlayAreaProps {
   trumpState: TrumpState;
 }
 
-const PlayArea: React.FC<PlayAreaProps> = ({ currentTrick, trumpState }) => {
+const PlayArea: React.FC<PlayAreaProps> = ({ currentTrick }) => {
   if (!currentTrick || currentTrick.cards.length === 0) {
     return (
-      <div className="play-area w-64 h-64 rounded-full bg-green-900 border-4 border-green-700 shadow-inner flex items-center justify-center">
+      <div className="play-area w-80 h-80 rounded-full bg-green-900 border-4 border-green-700 shadow-inner flex items-center justify-center">
         <span className="text-white opacity-50">Play Area</span>
       </div>
     );
@@ -27,7 +27,7 @@ const PlayArea: React.FC<PlayAreaProps> = ({ currentTrick, trumpState }) => {
     // Only calculating for 3 or 4 cards, but could be extended for more
     const angleStep = 360 / Math.max(totalCards, 3);
     const angle = index * angleStep;
-    const radius = 70; // Distance from center
+    const radius = 90; // Increased distance from center for larger play area
 
     const radian = (angle - 90) * (Math.PI / 180);
     const x = Math.cos(radian) * radius;
@@ -37,7 +37,7 @@ const PlayArea: React.FC<PlayAreaProps> = ({ currentTrick, trumpState }) => {
   };
 
   return (
-    <div className="play-area w-64 h-64 rounded-full bg-green-900 border-4 border-green-700 shadow-inner relative">
+    <div className="play-area w-80 h-80 rounded-full bg-green-900 border-4 border-green-700 shadow-inner relative">
       {/* Center reference point */}
       <div className="absolute left-1/2 top-1/2 w-1 h-1 -translate-x-1/2 -translate-y-1/2" />
 

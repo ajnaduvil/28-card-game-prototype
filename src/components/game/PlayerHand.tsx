@@ -13,6 +13,7 @@ interface PlayerHandProps {
   trumpState?: TrumpState;
   playerId: string;
   finalDeclarerId?: string;
+  hideCards?: boolean;
 }
 
 const PlayerHand: React.FC<PlayerHandProps> = ({
@@ -24,6 +25,7 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
   trumpState,
   playerId,
   finalDeclarerId,
+  hideCards = false,
 }) => {
   const [playableCards, setPlayableCards] = useState<Record<string, boolean>>(
     {}
@@ -130,13 +132,14 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
               }}
             >
               <Card
-                card={card}
+                card={hideCards ? undefined : card}
                 isPlayable={isPlayable}
                 isSelectable={isCurrentPlayer}
                 isSelected={isSelected}
                 onClick={handleCardClick}
                 size="md"
-                showPointValue={isCurrentPlayer}
+                showPointValue={isCurrentPlayer && !hideCards}
+                faceDown={hideCards}
               />
             </div>
           );
