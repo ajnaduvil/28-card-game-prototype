@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Card as CardModel } from "../../models/card";
+import { Card as CardModel, Suit } from "../../models/card";
 import Card from "./Card";
 import { Trick, TrumpState } from "../../models/game";
 import { isValidPlay, canFollowSuit } from "../../services/local/cardUtils";
+import { useGameStore } from "../../store/gameStore";
 
 interface PlayerHandProps {
   hand: CardModel[];
   isCurrentPlayer: boolean;
-  onCardPlay?: (card: CardModel) => void;
-  onRequestTrumpReveal?: () => void;
   currentTrick?: Trick | null;
   trumpState?: TrumpState;
   playerId: string;
@@ -19,14 +18,20 @@ interface PlayerHandProps {
 const PlayerHand: React.FC<PlayerHandProps> = ({
   hand,
   isCurrentPlayer,
-  onCardPlay,
-  onRequestTrumpReveal,
   currentTrick,
   trumpState,
   playerId,
   finalDeclarerId,
   hideCards = false,
 }) => {
+  const playCardAction = useGameStore((state) => state.playCard);
+  const declarerRevealTrumpAction = useGameStore(
+    (state) => state.declarerRevealTrump
+  );
+  const requestTrumpRevealAction = useGameStore(
+    (state) => state.requestTrumpReveal
+  );
+
   const [playableCards, setPlayableCards] = useState<Record<string, boolean>>(
     {}
   );
@@ -35,13 +40,18 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
   const [leadSuitCards, setLeadSuitCards] = useState<Record<string, boolean>>(
     {}
   );
+  const [showDeclarerRevealChoice, setShowDeclarerRevealChoice] =
+    useState<boolean>(false);
+  const [cardPendingRevealChoice, setCardPendingRevealChoice] =
+    useState<CardModel | null>(null);
 
-  // Update playable cards whenever relevant props change
   useEffect(() => {
     if (!isCurrentPlayer || !currentTrick || !trumpState) {
       setPlayableCards({});
       setCanAskTrump(false);
       setLeadSuitCards({});
+      setShowDeclarerRevealChoice(false);
+      setCardPendingRevealChoice(null);
       return;
     }
 
@@ -58,7 +68,6 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
         finalDeclarerId
       );
 
-      // Mark cards of the lead suit
       if (
         currentTrick.cards.length > 0 &&
         currentTrick.leadSuit === card.suit
@@ -67,11 +76,9 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
       }
     });
 
-    // Check if the player cannot follow suit and is not the declarer
-    // This is when they should be able to ask for trump
     const canFollow =
       currentTrick.cards.length > 0 &&
-      canFollowSuit(hand, currentTrick.leadSuit);
+      canFollowSuit(hand, currentTrick.leadSuit as Suit);
 
     setCanAskTrump(
       isCurrentPlayer &&
@@ -83,6 +90,14 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
 
     setPlayableCards(playableMap);
     setLeadSuitCards(leadSuitMap);
+
+    if (
+      showDeclarerRevealChoice &&
+      (!playableMap[cardPendingRevealChoice?.id ?? ""] || !isCurrentPlayer)
+    ) {
+      setShowDeclarerRevealChoice(false);
+      setCardPendingRevealChoice(null);
+    }
   }, [
     hand,
     isCurrentPlayer,
@@ -90,27 +105,64 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
     trumpState,
     playerId,
     finalDeclarerId,
+    showDeclarerRevealChoice,
+    cardPendingRevealChoice,
   ]);
 
   const handleCardClick = (card: CardModel) => {
-    if (!isCurrentPlayer) return;
+    if (!isCurrentPlayer || !currentTrick || !trumpState) return;
 
-    // If it's the current player's turn and the card is playable
-    if (currentTrick && trumpState && playableCards[card.id]) {
-      if (onCardPlay) {
-        onCardPlay(card);
+    if (cardPendingRevealChoice?.id === card.id) {
+      setShowDeclarerRevealChoice(false);
+      setCardPendingRevealChoice(null);
+      setSelectedCard(null);
+      return;
+    }
+
+    if (playableCards[card.id]) {
+      const isDeclarer = playerId === finalDeclarerId;
+      const isTrumpCard = card.suit === trumpState.finalTrumpSuit;
+      const cannotFollow =
+        currentTrick.cards.length > 0 &&
+        !canFollowSuit(hand, currentTrick.leadSuit as Suit);
+
+      if (
+        isDeclarer &&
+        !trumpState.trumpRevealed &&
+        isTrumpCard &&
+        cannotFollow
+      ) {
+        setSelectedCard(card);
+        setCardPendingRevealChoice(card);
+        setShowDeclarerRevealChoice(true);
+      } else {
+        playCardAction(playerId, card.id);
         setSelectedCard(null);
+        setShowDeclarerRevealChoice(false);
+        setCardPendingRevealChoice(null);
       }
     } else {
-      // Just select/deselect the card when it's not playable or not player's turn
       setSelectedCard(selectedCard?.id === card.id ? null : card);
+      setShowDeclarerRevealChoice(false);
+      setCardPendingRevealChoice(null);
     }
   };
 
   const handleAskTrump = () => {
-    if (onRequestTrumpReveal) {
-      onRequestTrumpReveal();
+    requestTrumpRevealAction();
+  };
+
+  const handleDeclarerChoice = (reveal: boolean) => {
+    if (!cardPendingRevealChoice || !playerId) return;
+
+    if (reveal) {
+      declarerRevealTrumpAction(playerId);
     }
+    playCardAction(playerId, cardPendingRevealChoice.id);
+
+    setShowDeclarerRevealChoice(false);
+    setCardPendingRevealChoice(null);
+    setSelectedCard(null);
   };
 
   if (hand.length === 0) {
@@ -130,7 +182,6 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
         </button>
       )}
 
-      {/* Lead suit indicator - only show if there is a lead suit */}
       {currentTrick &&
         currentTrick.cards.length > 0 &&
         currentTrick.leadSuit && (
@@ -139,12 +190,34 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
           </div>
         )}
 
+      {/* --- Add Declarer Choice Buttons --- */}
+      {showDeclarerRevealChoice && cardPendingRevealChoice && (
+        <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 z-20 flex flex-col items-center space-y-1 bg-gray-800 p-2 rounded shadow-lg">
+          <p className="text-white text-xs mb-1">Play Trump:</p>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => handleDeclarerChoice(false)} // Play Hidden
+              className="px-2 py-1 bg-gray-600 hover:bg-gray-500 text-white text-xs rounded"
+            >
+              Keep Hidden
+            </button>
+            <button
+              onClick={() => handleDeclarerChoice(true)} // Play & Reveal
+              className="px-2 py-1 bg-green-600 hover:bg-green-500 text-white text-xs rounded"
+            >
+              Reveal Trump
+            </button>
+          </div>
+        </div>
+      )}
+      {/* --- End Declarer Choice Buttons --- */}
+
       <div className="flex relative" style={{ height: "135px" }}>
         {hand.map((card, index) => {
           const isPlayable = isCurrentPlayer && playableCards[card.id];
           const isSelected = selectedCard?.id === card.id;
           const isLeadSuit = leadSuitCards[card.id];
-          const offset = Math.min(20, 200 / hand.length); // Dynamically calculate offset based on hand size
+          const offset = Math.min(20, 200 / hand.length);
 
           return (
             <div

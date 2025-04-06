@@ -433,6 +433,30 @@ export const useGameStore = create<GameState & GameActions>()(
             let success = false;
 
             set(state => {
+                // *** NEW: Check for forced play of last card (folded trump) ***
+                const currentPlayerIndex = state.currentPlayerIndex;
+                const currentPlayer = state.players[currentPlayerIndex];
+                const isDeclarer = currentPlayer.id === state.trumpState.finalDeclarerId;
+
+                if (
+                    isDeclarer &&
+                    currentPlayer.hand.length === 1 &&
+                    state.foldedCard &&
+                    currentPlayer.hand[0].id === state.foldedCard.id &&
+                    !state.trumpState.trumpRevealed // Ensure it wasn't already revealed
+                ) {
+                    console.log("Declarer's last card is folded trump. Forcing reveal and play.");
+
+                    // Force reveal
+                    state.trumpState.trumpRevealed = true;
+                    state.trumpState.foldedCardReturned = true; // Mark as returned implicitly
+                    // Optional: Log this specific reveal type?
+
+                    // The card to play IS the folded card
+                    cardId = state.foldedCard.id;
+                }
+                // *** END NEW CHECK ***
+
                 // Validate we're in the right phase
                 if (state.currentPhase !== 'playing_start_trick' &&
                     state.currentPhase !== 'playing_in_progress') {
@@ -441,7 +465,6 @@ export const useGameStore = create<GameState & GameActions>()(
                 }
 
                 // Validate it's the player's turn
-                const currentPlayer = state.players[state.currentPlayerIndex];
                 if (currentPlayer.id !== playerId) {
                     console.error("Not your turn to play");
                     return;
