@@ -145,7 +145,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
             {isDeclarer &&
               (trumpState.provisionalTrumpCardId ||
                 trumpState.finalTrumpCardId) && (
-                <div className="absolute -right-20 top-0 bg-black bg-opacity-70 rounded-md p-2 shadow-lg border border-yellow-500">
+                <div className="absolute left-0 bottom-16 bg-black bg-opacity-70 rounded-md p-2 shadow-lg border border-yellow-500 z-10">
                   <div className="text-xs text-white mb-1 text-center">
                     Folded Trump
                   </div>
