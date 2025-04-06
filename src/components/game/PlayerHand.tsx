@@ -130,12 +130,12 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
         </button>
       )}
 
-      {/* Lead suit indicator */}
+      {/* Lead suit indicator - only show if there is a lead suit */}
       {currentTrick &&
         currentTrick.cards.length > 0 &&
         currentTrick.leadSuit && (
-          <div className="mb-2 px-3 py-1 bg-blue-600 text-white rounded-full text-sm shadow-md">
-            Lead Suit: {currentTrick.leadSuit}
+          <div className="mb-2 px-3 py-1 bg-blue-700 text-white rounded-full text-sm shadow-md font-medium">
+            Lead: {currentTrick.leadSuit}
           </div>
         )}
 
@@ -168,6 +168,7 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
                   size="md"
                   showPointValue={isCurrentPlayer && !hideCards}
                   faceDown={hideCards}
+                  showBack={hideCards}
                 />
               </div>
             </div>

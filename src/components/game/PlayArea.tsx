@@ -69,8 +69,8 @@ const PlayArea: React.FC<PlayAreaProps> = ({ currentTrick }) => {
 
       {/* Lead suit indicator */}
       {currentTrick.leadSuit && (
-        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-white bg-opacity-70 px-2 py-1 rounded-md text-sm">
-          <span>Lead: {currentTrick.leadSuit}</span>
+        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-blue-700 text-white px-3 py-1 rounded-full text-sm shadow-md font-medium">
+          Lead: {currentTrick.leadSuit}
         </div>
       )}
     </div>

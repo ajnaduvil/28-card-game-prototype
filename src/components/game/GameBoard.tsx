@@ -103,9 +103,16 @@ const GameBoard: React.FC<GameBoardProps> = ({
                 : "top-6 right-6 w-96 rotate-30" // top-right
             } ${isCurrentPlayer ? "z-10" : "z-0"}`}
           >
+            {/* Current player turn highlight */}
+            {isCurrentPlayer && (
+              <div className="absolute inset-0 -m-2 border-4 border-yellow-400 rounded-xl animate-pulse opacity-70 pointer-events-none"></div>
+            )}
+
             <div
               className={`player-info mb-2 text-white flex items-center justify-between px-2 rounded-md border-2 ${
-                isCurrentPlayer ? "bg-blue-900" : "bg-gray-800 bg-opacity-70"
+                isCurrentPlayer
+                  ? "bg-blue-900 border-yellow-400 shadow-lg"
+                  : "bg-gray-800 bg-opacity-70"
               } ${teamColor}`}
             >
               <span className="flex items-center gap-1">
@@ -122,7 +129,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
                 )}
               </span>
               {isCurrentPlayer && (
-                <span className="text-yellow-300 animate-pulse">
+                <span className="text-yellow-300 font-bold animate-pulse">
                   • Your Turn
                 </span>
               )}
@@ -139,7 +146,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
               trumpState={trumpState}
               playerId={player.id}
               finalDeclarerId={trumpState.finalDeclarerId}
-              hideCards={index !== 0 && index !== currentPlayerIndex} // Hide cards except for user's hand (index 0) and current player
+              hideCards={index !== 0} // Only show user's cards (index 0), hide all other players' cards
             />
           </div>
         );

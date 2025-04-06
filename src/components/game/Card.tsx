@@ -90,7 +90,7 @@ const Card: React.FC<CardProps> = ({
       )}
 
       {isPlayable && !faceDown && (
-        <div className="absolute inset-0 bg-green-500 bg-opacity-10 rounded-lg"></div>
+        <div className="absolute inset-0 bg-green-500 bg-opacity-20 border-2 border-green-600 rounded-lg"></div>
       )}
 
       {/* Lead suit indicator */}
