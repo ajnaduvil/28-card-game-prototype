@@ -1282,14 +1282,718 @@ In this phase, we'll focus on building the core game mechanics and a local multi
 
 ### Step 7: Testing and Refinement
 
-1. **Manual Testing**
-   - Test all game rules and edge cases
-   - Verify scoring logic
-   - Test UI on different devices and screen sizes
+1. **Manual Testing:** Robust handling for Cloud Function errors (user-friendly messages), Firestore connectivity issues.
+2. **Visual Feedback:** Consistent loading indicators, smooth animations (dealing, playing, collecting tricks), clear cues for active elements, turns, game state.
+3. **Responsiveness:** Use responsive design principles (e.g., Tailwind CSS) for usability on various screen sizes, including good support for mobile landscape mode.
 
-2. **Bug Fixes and Improvements**
-   - Address any issues found during testing
-   - Refine UI based on playability feedback
+### Step 8: Comprehensive Testing Strategy
+
+A robust testing approach is essential for a complex card game like 28, where many rule edge cases and multiplayer scenarios need to be validated.
+
+1. **Unit Testing**
+
+   **Setup:**
+   - Use Jest as the primary test runner
+   - Use React Testing Library for component testing
+   - Create a dedicated `/tests` directory with a structure mirroring the source code
+
+   **Core Game Logic Tests:**
+   - Create a comprehensive test suite for the game engine covering:
+     - Deck generation and card utilities
+     - Bidding rules validation (minimum bids, honors thresholds)
+     - Trump selection and folding mechanics
+     - Card playing rules (following suit, trump playing)
+     - Trick winning determination
+     - Score calculation (3p vs 4p differences)
+     - Game progression state transitions
+
+   **Example Test Scenarios:**
+   ```typescript
+   // Example test for bidding validation
+   describe('Bidding Validation', () => {
+     test('should reject bids below 14', () => {
+       expect(isValidBid(13, 'bidding1', '4p')).toBe(false);
+     });
+
+     test('should accept bids between 14 and 28', () => {
+       expect(isValidBid(14, 'bidding1', '4p')).toBe(true);
+       expect(isValidBid(28, 'bidding1', '4p')).toBe(true);
+     });
+
+     test('should reject bids above 28', () => {
+       expect(isValidBid(29, 'bidding1', '4p')).toBe(false);
+     });
+
+     test('should enforce minimum bid in round 2 for 4p', () => {
+       expect(isValidBid(23, 'bidding2', '4p')).toBe(false);
+       expect(isValidBid(24, 'bidding2', '4p')).toBe(true);
+     });
+
+     test('should enforce minimum bid in round 2 for 3p', () => {
+       expect(isValidBid(21, 'bidding2', '3p')).toBe(false);
+       expect(isValidBid(22, 'bidding2', '3p')).toBe(true);
+     });
+
+     test('should detect honors bids correctly in 3p', () => {
+       expect(isHonorsBid(18, '3p', 'bidding1')).toBe(false);
+       expect(isHonorsBid(19, '3p', 'bidding1')).toBe(true);
+     });
+
+     test('should detect honors bids correctly in 4p', () => {
+       expect(isHonorsBid(20, '4p', 'bidding1')).toBe(false);
+       expect(isHonorsBid(21, '4p', 'bidding1')).toBe(true);
+     });
+   });
+
+   // Example test for trick winning logic
+   describe('Trick Winning Logic', () => {
+     test('highest card of led suit should win when no trump played', () => {
+       const trick: Trick = {
+         cards: [
+           { id: 'H9', suit: 'Hearts', rank: '9', pointValue: 2, order: 7 },
+           { id: 'HJ', suit: 'Hearts', rank: 'J', pointValue: 3, order: 8 },
+           { id: 'H10', suit: 'Hearts', rank: '10', pointValue: 1, order: 5 }
+         ],
+         leaderId: 'player1',
+         leadSuit: 'Hearts',
+         timestamp: Date.now()
+       };
+       
+       expect(determineTrickWinner(trick)).toBe(1); // Index of HJ
+     });
+
+     test('trump card should win over non-trump cards', () => {
+       const trick: Trick = {
+         cards: [
+           { id: 'H9', suit: 'Hearts', rank: '9', pointValue: 2, order: 7 },
+           { id: 'S7', suit: 'Spades', rank: '7', pointValue: 0, order: 1 },
+           { id: 'H10', suit: 'Hearts', rank: '10', pointValue: 1, order: 5 }
+         ],
+         leaderId: 'player1',
+         leadSuit: 'Hearts',
+         timestamp: Date.now()
+       };
+       
+       expect(determineTrickWinner(trick, 'Spades', true)).toBe(1); // Index of S7
+     });
+
+     test('highest trump card should win when multiple trumps played', () => {
+       const trick: Trick = {
+         cards: [
+           { id: 'H9', suit: 'Hearts', rank: '9', pointValue: 2, order: 7 },
+           { id: 'S7', suit: 'Spades', rank: '7', pointValue: 0, order: 1 },
+           { id: 'SJ', suit: 'Spades', rank: 'J', pointValue: 3, order: 8 }
+         ],
+         leaderId: 'player1',
+         leadSuit: 'Hearts',
+         timestamp: Date.now()
+       };
+       
+       expect(determineTrickWinner(trick, 'Spades', true)).toBe(2); // Index of SJ
+     });
+   });
+   ```
+
+   **Component Tests:**
+   - Test UI components for correct rendering and interaction:
+     - Card component (visual states, selection)
+     - Player area component
+     - Bidding interface
+     - Trump selection interface
+
+2. **Integration Testing**
+
+   **Game Flow Tests:**
+   - Create tests that simulate complete game scenarios:
+     - Full bidding rounds
+     - Trump selection process
+     - Complete trick-taking sequences
+     - Round completion and scoring
+     - Game completion and winner determination
+
+   **Example Integration Test:**
+   ```typescript
+   test('complete bidding round flow', async () => {
+     // Set up initial game state
+     const gameEngine = new GameEngine('4p');
+     const initialState = gameEngine.initializeGame(['P1', 'P2', 'P3', 'P4']);
+     
+     // First player bids
+     let result = gameEngine.placeBid('player1', 14);
+     expect(result).toBe(true);
+     expect(gameEngine.state.bids1.length).toBe(1);
+     expect(gameEngine.state.currentPlayerIndex).toBe(1);
+     
+     // Second player passes
+     result = gameEngine.placeBid('player2', 0);
+     expect(result).toBe(true);
+     expect(gameEngine.state.bids1.length).toBe(2);
+     expect(gameEngine.state.currentPlayerIndex).toBe(2);
+     
+     // Third player bids higher
+     result = gameEngine.placeBid('player3', 16);
+     expect(result).toBe(true);
+     expect(gameEngine.state.bids1.length).toBe(3);
+     expect(gameEngine.state.highestBid1.amount).toBe(16);
+     
+     // Fourth player passes
+     result = gameEngine.placeBid('player4', 0);
+     expect(result).toBe(true);
+     expect(gameEngine.state.bids1.length).toBe(4);
+     
+     // First player bids honors
+     result = gameEngine.placeBid('player1', 21); // Honors in 4p mode
+     expect(result).toBe(true);
+     expect(gameEngine.state.highestBid1.isHonors).toBe(true);
+     
+     // Third player passes
+     result = gameEngine.placeBid('player3', 0);
+     expect(result).toBe(true);
+     
+     // Check transition to trump selection phase
+     expect(gameEngine.state.currentPhase).toBe('trump_selection_provisional');
+     expect(gameEngine.state.currentPlayerIndex).toBe(0); // P1 won bidding
+   });
+   ```
+
+   **Firebase Integration Tests (Phase 2):**
+   - Create integration tests for Firebase services:
+     - Authentication flows
+     - Game creation and joining
+     - Real-time updates and synchronization
+     - Security rule validation
+
+3. **End-to-End Testing**
+
+   **Setup:**
+   - Use Cypress for end-to-end testing
+   - Create test scenarios that cover complete user journeys
+
+   **Key Test Scenarios:**
+   - Local multiplayer gameplay
+   - User registration and login (Phase 2)
+   - Game creation and joining flow (Phase 2)
+   - Complete game playthrough (local and online)
+   - Disconnection and reconnection handling (Phase 2)
+
+   **Example Cypress Test (Phase 2):**
+   ```javascript
+   describe('Game Creation and Joining', () => {
+     beforeEach(() => {
+       cy.visit('/');
+       cy.login('testuser@example.com', 'password123');
+     });
+     
+     it('should allow creating a new game', () => {
+       cy.get('[data-cy=create-game-button]').click();
+       cy.get('[data-cy=game-mode-4p]').click();
+       cy.get('[data-cy=create-game-submit]').click();
+       
+       // Should navigate to waiting room
+       cy.url().should('include', '/game/');
+       cy.get('[data-cy=waiting-room]').should('be.visible');
+       cy.get('[data-cy=player-list]').should('contain', 'testuser');
+     });
+     
+     it('should allow joining an existing game', () => {
+       // Setup: Create a game with another user first
+       cy.setupTestGame();
+       
+       cy.get('[data-cy=game-list-item]').first().click();
+       cy.get('[data-cy=join-game-button]').click();
+       
+       // Should navigate to waiting room
+       cy.url().should('include', '/game/');
+       cy.get('[data-cy=waiting-room]').should('be.visible');
+       cy.get('[data-cy=player-list]').should('contain', 'testuser');
+     });
+   });
+   ```
+
+4. **Mobile and Responsive Testing**
+
+   **Device Testing Matrix:**
+   - iOS Devices:
+     - iPhone SE (small)
+     - iPhone 11/12/13 (medium)
+     - iPhone Pro Max models (large)
+     - iPad Mini
+     - iPad Pro
+   - Android Devices:
+     - Small Android phone (5" or smaller)
+     - Medium Android phone (5-6")
+     - Large Android phone (6"+ phablet)
+     - Android tablet
+
+   **Responsive Testing Checklist:**
+   - Verify all UI elements are appropriately sized for touch
+   - Ensure text is readable on all device sizes
+   - Check that gestures work correctly (swipe, tap, etc.)
+   - Verify orientation changes work smoothly
+   - Test with various network conditions (fast, slow, offline)
+
+5. **Performance Testing**
+
+   **Client Performance:**
+   - Test UI rendering performance with React DevTools
+   - Measure and optimize bundle size
+   - Test memory usage during long gameplay sessions
+
+   **Firebase Performance (Phase 2):**
+   - Test read/write operations under load
+   - Measure and optimize query performance
+   - Test with simulated network conditions (latency, bandwidth limits)
+
+6. **Accessibility Testing**
+
+   **Automated Tests:**
+   - Use tools like axe-core for automated accessibility testing
+   - Verify proper HTML semantics and ARIA attributes
+   - Check color contrast ratios
+
+   **Manual Testing:**
+   - Test keyboard navigation for all interactions
+   - Test with screen readers
+   - Verify proper focus management
+   - Test with high contrast mode
+
+7. **Test Coverage Goals**
+
+   - Unit tests: >80% coverage of game logic code
+   - Component tests: >70% coverage of UI components
+   - Integration tests: Cover all critical user flows
+   - All edge cases in game rules explicitly tested
+   - All responsive breakpoints verified
+
+8. **Testing Tools**
+
+   - **Jest**: Primary test runner and assertion library
+   - **React Testing Library**: Component testing
+   - **Cypress**: End-to-end testing
+   - **Firebase Emulator Suite**: Local Firebase testing (Phase 2)
+   - **Lighthouse**: Performance and accessibility testing
+   - **axe-core**: Automated accessibility testing
+   - **React DevTools**: Component performance testing
+
+### Step 9: Accessibility and Responsive Design
+
+#### Responsive Design Approach
+
+**Tailwind Breakpoints:**
+- Implement a mobile-first design approach using Tailwind CSS breakpoints:
+  - `sm`: 640px (small mobile devices)
+  - `md`: 768px (tablets and larger phones)
+  - `lg`: 1024px (laptops and desktop)
+  - `xl`: 1280px (large desktop screens)
+  - `2xl`: 1536px (extra large screens)
+
+**Handling Card Game UI Challenges:**
+- Cards need to be large enough to be readable but must fit the available screen space
+- Player hands need to adjust based on device size
+- Game table layout needs to adapt to different aspect ratios
+
+#### Mobile-Specific UI Adaptations
+
+**Card Component:**
+```typescript
+// Responsive card component with different sizes based on screen
+export const Card: React.FC<CardProps> = ({ 
+  card, 
+  isSelectable,
+  isSelected,
+  onClick,
+  size = 'md' // 'sm' | 'md' | 'lg'
+}) => {
+  // Size classes based on the size prop
+  const sizeClasses = {
+    sm: 'w-14 h-20 text-xs', // Small cards for mobile portrait
+    md: 'w-20 h-28 text-sm', // Medium cards for mobile landscape/tablet
+    lg: 'w-24 h-36 text-base' // Large cards for desktop
+  };
+  
+  return (
+    <div 
+      className={`card relative ${sizeClasses[size]} rounded shadow-md
+        ${isSelected ? 'transform -translate-y-4' : ''}
+        ${isSelectable ? 'cursor-pointer hover:ring-2 hover:ring-blue-400' : ''}
+      `}
+      onClick={isSelectable ? onClick : undefined}
+    >
+      {/* Card content */}
+    </div>
+  );
+};
+```
+
+**Hand Layout:**
+```typescript
+// Responsive hand component with different layouts
+export const PlayerHand: React.FC<PlayerHandProps> = ({
+  cards,
+  onCardClick,
+  playableCards
+}) => {
+  return (
+    <div className="relative">
+      {/* Different overlapping strategies based on screen size */}
+      <div className="
+        flex items-center justify-center
+        sm:space-x-0 md:space-x-1 lg:space-x-2
+        sm:ml-0 md:ml-4 lg:ml-6
+      ">
+        {/* For small screens, cards overlap more */}
+        <div className="hidden sm:block md:hidden">
+          {cards.map((card, index) => (
+            <div 
+              key={card.id}
+              className="absolute"
+              style={{ left: `${index * 20}px` }} // More overlap
+            >
+              <Card
+                card={card}
+                size="sm"
+                isSelectable={playableCards?.includes(card.id)}
+                onClick={() => onCardClick(card)}
+              />
+            </div>
+          ))}
+        </div>
+        
+        {/* For medium screens, cards overlap less */}
+        <div className="hidden md:block lg:hidden">
+          {cards.map((card, index) => (
+            <div 
+              key={card.id}
+              className="absolute"
+              style={{ left: `${index * 30}px` }} // Less overlap
+            >
+              <Card
+                card={card}
+                size="md"
+                isSelectable={playableCards?.includes(card.id)}
+                onClick={() => onCardClick(card)}
+              />
+            </div>
+          ))}
+        </div>
+        
+        {/* For large screens, minimal card overlap */}
+        <div className="hidden lg:block">
+          {cards.map((card, index) => (
+            <div 
+              key={card.id}
+              className="absolute"
+              style={{ left: `${index * 40}px` }} // Minimal overlap
+            >
+              <Card
+                card={card}
+                size="lg"
+                isSelectable={playableCards?.includes(card.id)}
+                onClick={() => onCardClick(card)}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+```
+
+**Game Table Layout:**
+```typescript
+// Responsive game table layout
+export const GameTable: React.FC<GameTableProps> = ({
+  players,
+  currentTrick,
+  currentPlayerIndex,
+  trumpSuit,
+  trumpRevealed
+}) => {
+  return (
+    <div className="game-table relative w-full h-full bg-green-700 rounded-full">
+      {/* Center area for current trick - adaptive sizing */}
+      <div className="
+        absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2
+        sm:w-24 sm:h-24 md:w-32 md:h-32 lg:w-48 lg:h-48
+        bg-green-800 rounded-full flex items-center justify-center
+      ">
+        {/* Current trick cards */}
+      </div>
+      
+      {/* Player positions - adaptive for different player counts and screen sizes */}
+      <div className="player-positions absolute inset-0">
+        {/* Bottom player (user) */}
+        <div className="
+          absolute bottom-0 left-1/2 transform -translate-x-1/2
+          sm:mb-2 md:mb-4 lg:mb-8
+        ">
+          <PlayerPosition 
+            player={players[0]}
+            isActive={currentPlayerIndex === 0}
+            orientation="bottom"
+          />
+        </div>
+        
+        {/* Left player */}
+        <div className="
+          absolute top-1/2 left-0 transform -translate-y-1/2
+          sm:ml-2 md:ml-4 lg:ml-8
+        ">
+          <PlayerPosition 
+            player={players[1]}
+            isActive={currentPlayerIndex === 1}
+            orientation="left"
+          />
+        </div>
+        
+        {/* Top player */}
+        <div className="
+          absolute top-0 left-1/2 transform -translate-x-1/2
+          sm:mt-2 md:mt-4 lg:mt-8
+        ">
+          <PlayerPosition 
+            player={players[2]}
+            isActive={currentPlayerIndex === 2}
+            orientation="top"
+          />
+        </div>
+        
+        {/* Right player (only in 4p mode) */}
+        {players.length > 3 && (
+          <div className="
+            absolute top-1/2 right-0 transform -translate-y-1/2
+            sm:mr-2 md:mr-4 lg:mr-8
+          ">
+            <PlayerPosition 
+              player={players[3]}
+              isActive={currentPlayerIndex === 3}
+              orientation="right"
+            />
+          </div>
+        )}
+      </div>
+      
+      {/* Trump indicator - adaptive positioning */}
+      {trumpRevealed && trumpSuit && (
+        <div className="
+          absolute
+          sm:top-2 sm:right-2 md:top-4 md:right-4 lg:top-8 lg:right-8
+          sm:text-xl md:text-2xl lg:text-3xl
+          font-bold text-white
+        ">
+          {trumpSuit === 'Hearts' && '♥'}
+          {trumpSuit === 'Diamonds' && '♦'}
+          {trumpSuit === 'Clubs' && '♣'}
+          {trumpSuit === 'Spades' && '♠'}
+        </div>
+      )}
+    </div>
+  );
+};
+```
+
+#### Orientation Handling
+
+**Orientation Detection:**
+```typescript
+// Hook to detect and respond to orientation changes
+export const useOrientation = () => {
+  const [orientation, setOrientation] = useState<'portrait' | 'landscape'>(
+    window.innerWidth > window.innerHeight ? 'landscape' : 'portrait'
+  );
+  
+  useEffect(() => {
+    const handleResize = () => {
+      setOrientation(
+        window.innerWidth > window.innerHeight ? 'landscape' : 'portrait'
+      );
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
+  return orientation;
+};
+```
+
+**Orientation-Specific Layouts:**
+```typescript
+// Component that adapts based on orientation
+export const GameLayout: React.FC = () => {
+  const orientation = useOrientation();
+  
+  if (orientation === 'portrait') {
+    return (
+      <div className="flex flex-col h-screen">
+        <div className="h-2/3">
+          <GameTable />
+        </div>
+        <div className="h-1/3">
+          <PlayerHand />
+        </div>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="flex h-screen">
+      <div className="w-3/4">
+        <GameTable />
+      </div>
+      <div className="w-1/4">
+        <PlayerHand />
+      </div>
+    </div>
+  );
+};
+```
+
+#### Accessibility Implementation
+
+**Keyboard Navigation:**
+```typescript
+// Enhanced card component with keyboard support
+export const AccessibleCard: React.FC<CardProps> = ({
+  card,
+  isSelectable,
+  isSelected,
+  onClick,
+  tabIndex
+}) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (isSelectable && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      onClick && onClick();
+    }
+  };
+  
+  return (
+    <div
+      role="button"
+      tabIndex={isSelectable ? (tabIndex || 0) : -1}
+      aria-pressed={isSelected}
+      aria-label={`${card.rank} of ${card.suit}${card.pointValue > 0 ? `, ${card.pointValue} points` : ''}`}
+      className={`card-component ${isSelectable ? 'cursor-pointer' : ''}`}
+      onClick={isSelectable ? onClick : undefined}
+      onKeyDown={handleKeyDown}
+    >
+      {/* Card content */}
+    </div>
+  );
+};
+```
+
+**Screen Reader Support:**
+```typescript
+// Game status announcer for screen readers
+export const GameStatusAnnouncer: React.FC<GameStatusAnnouncerProps> = ({
+  phase,
+  currentPlayerName,
+  highestBid,
+  trumpRevealed,
+  trumpSuit
+}) => {
+  const [announcement, setAnnouncement] = useState('');
+  
+  useEffect(() => {
+    let message = '';
+    
+    switch (phase) {
+      case 'bidding1':
+        message = `First bidding round. ${currentPlayerName}'s turn to bid. Current highest bid: ${highestBid || 'None'}`;
+        break;
+      case 'bidding2':
+        message = `Second bidding round. ${currentPlayerName}'s turn to bid. Current highest bid: ${highestBid || 'None'}`;
+        break;
+      case 'playing':
+        message = `${currentPlayerName}'s turn to play a card.`;
+        if (trumpRevealed && trumpSuit) {
+          message += ` Trump suit is ${trumpSuit}.`;
+        }
+        break;
+      // Other phases...
+    }
+    
+    setAnnouncement(message);
+  }, [phase, currentPlayerName, highestBid, trumpRevealed, trumpSuit]);
+  
+  return (
+    <div 
+      role="status"
+      aria-live="polite"
+      className="sr-only"
+    >
+      {announcement}
+    </div>
+  );
+};
+```
+
+### Step 10: Project Timeline and Milestones
+
+This project will be implemented in two distinct phases, with clear milestones and decision points to ensure quality and progress tracking.
+
+#### Phase 1: Core Game Logic and Local Multiplayer (Estimated: 8 weeks)
+
+**Week 1-2: Project Setup and Core Models**
+- **Milestone 1.1:** Project scaffolding and dependencies setup (End of Week 1)
+- **Milestone 1.2:** Core game models and types implementation (End of Week 2)
+
+**Week 3-4: Game Logic Implementation**
+- **Milestone 1.3:** Basic game mechanics implementation (End of Week 3)
+- **Milestone 1.4:** Complete game logic with scoring (End of Week 4)
+- **Decision Point 1:** Review game logic implementation
+
+**Week 5-6: UI Components and Basic Gameplay**
+- **Milestone 1.5:** Core UI components (End of Week 5)
+- **Milestone 1.6:** Complete local gameplay UI (End of Week 6)
+- **Decision Point 2:** Gameplay experience review
+
+**Week 7-8: Testing, Refinement, and Mobile Optimization**
+- **Milestone 1.7:** Testing and bug fixes (End of Week 7)
+- **Milestone 1.8:** Mobile optimization and refinement (End of Week 8)
+- **Phase 1 Completion Review**
+
+#### Phase 2: Online Multiplayer with Firebase (Estimated: 10 weeks)
+
+**Week 9-10: Firebase Setup and Authentication**
+- **Milestone 2.1:** Firebase project setup (End of Week 9)
+- **Milestone 2.2:** Authentication UI and functionality (End of Week 10)
+- **Decision Point 3:** Authentication review
+
+**Week 11-12: Game Lobby and Matchmaking**
+- **Milestone 2.3:** Lobby implementation (End of Week 11)
+- **Milestone 2.4:** Waiting room and matchmaking (End of Week 12)
+- **Decision Point 4:** Lobby functionality review
+
+**Week 13-15: Online Game State Synchronization**
+- **Milestone 2.5:** Cloud Functions implementation (End of Week 13)
+- **Milestone 2.6:** Game state synchronization (End of Week 14)
+- **Milestone 2.7:** Gameplay action functions (End of Week 15)
+- **Decision Point 5:** Game synchronization review
+
+**Week 16-18: Game Completion and Additional Features**
+- **Milestone 2.8:** Round and game completion (End of Week 16)
+- **Milestone 2.9:** Disconnection handling and presence (End of Week 17)
+- **Milestone 2.10:** Final features and refinement (End of Week 18)
+- **Phase 2 Completion Review**
+
+#### Dependencies and Critical Path
+
+**Critical Dependencies:**
+1. Game logic implementation must be completed before UI components
+2. Local gameplay must be functional before online implementation
+3. Firebase authentication must be working before lobby implementation
+4. Game state synchronization must be reliable before implementing game actions
+5. Basic gameplay actions must work before implementing edge cases and refinements
+
+**Risk Mitigation:**
+1. **Game Logic Complexity:** Begin with simplified state diagrams and validate rules with experienced players before implementation
+2. **Firebase Costs:** Use the free tier efficiently and implement quota monitors
+3. **Multiplayer Sync Issues:** Implement comprehensive logging and state validation
+4. **Mobile Device Compatibility:** Test early and often on a variety of devices
 
 ## Phase 2: Online Multiplayer with Firebase
 
