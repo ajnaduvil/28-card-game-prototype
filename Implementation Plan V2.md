@@ -1292,11 +1292,18 @@ In this phase, we'll focus on building the core game mechanics and a local multi
 2. **Turn-Based Play Mechanism**
    - Implement "hot seat" style play where the device is passed between players
    - Add a "Ready for next player" transition screen to prevent seeing other players' hands
+   - **Transition Screen:** Implement a modal or full-screen overlay shown after a player completes their turn (play card, bid, etc.). This screen should:
+     - Display a message like "Turn Complete. Ready for [Next Player Name]?"
+     - Require an explicit action (e.g., a button click "Start Turn") before revealing the next player's hand and enabling their controls.
+     - This ensures the device can be passed without revealing sensitive information.
    - Hide/show hands based on current player
 
 3. **Game State Persistence**
-   - Save game state to localStorage to allow resuming games
-   - Implement game history tracking
+   - **Local Storage:** Use `localStorage.setItem('savedGameState', JSON.stringify(gameState))` to save the current `GameState` object.
+   - **Loading:** On application load, check `localStorage.getItem('savedGameState')`. If present, parse it (`JSON.parse`) and prompt the user if they want to resume the saved game.
+   - **Size Consideration:** Note that `localStorage` has limits (typically 5-10MB). While unlikely for a single game state, monitor the size of the stringified state during development. If it approaches limits, consider more selective saving (though full state is simpler for resuming).
+   - **Clearing:** Provide an option to clear the saved game state (e.g., when starting a new game or explicitly abandoning).
+   - **Game History:** Round scores (`roundScores` array within `GameState`) provide basic history. For more detailed turn-by-turn history locally, a separate log array could be added to the state, but be mindful of `localStorage` size implications.
 
 ### Step 6: Game UI Refinement
 
