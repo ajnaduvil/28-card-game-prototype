@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles can be added below */
+body {
+  @apply min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Game specific custom utility classes can be added here */
+@layer components {
+  .card-container {
+    @apply relative transition-all duration-200;
+  }
+}
