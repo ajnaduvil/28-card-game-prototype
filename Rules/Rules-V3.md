@@ -102,8 +102,10 @@ The dealer deals cards clockwise in two distinct batches, with a bidding round a
         *   **Asker's Play (Crucial Rule):** After the trump is revealed *due to their request*, the asking player **must** play a card of the trump suit if they possess one during that specific trick. If they do not possess any trump cards, they may discard any other card.
         *   Alternatively (less common), a non-declarer unable to follow suit *could* play a card without asking, leaving the trump hidden.
     *   **If the Final Declarer Cannot Follow Suit:**
-        *   **If they hold other cards of the Final Trump suit in their active hand:** They *must* play one of these trump cards. This implicitly reveals the trump suit. The Declarer may choose whether or not to *also* formally turn over the folded indicator card at this point. If they *do* choose to turn over the indicator card, they must pick it up and add it to their active hand.
-        *   **If their only card of the Final Trump suit is the folded one:** They *must* turn over the folded card (revealing the trump suit) and play it if it's a legal play for the trick. This card functions as trump.
+        *   The Declarer has two options:
+            *   **Option 1: Play Trump (Ruff):** Play a card from the Final Trump suit (if they hold one in their active hand or if the folded card is their only trump). This implicitly reveals the Final Trump suit to all players. The Declarer may *also* choose to formally turn over their folded trump indicator card at this time, pick it up, and add it to their active hand (now holding 8 cards).
+            *   **Option 2: Discard:** Play any card from a different plain suit. This does not reveal the trump suit.
+        *   If the Declarer's only card of the Final Trump suit is the folded one, and they choose Option 1 (Play Trump), they *must* turn over the folded card (revealing the trump suit) and play it. This card functions as trump.
 4.  **Playing Trump (Once Revealed - General Rule):** Once the Final Trump suit is known (either by being asked or implicitly revealed by the declarer):
     *   If trump is led, players must follow with trump if possible.
     *   If a plain suit is led, players must follow that suit. If unable, they **may** play trump ("ruff") or discard another plain suit card. *(Note: This general rule differs from the specific rule above for the player who just asked for the reveal).*

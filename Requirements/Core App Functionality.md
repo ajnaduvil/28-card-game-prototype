@@ -119,9 +119,13 @@ This document outlines the core functionality required for the 28 online multipl
 *   **Playing Phase:**
     *   If `status` is `playing` and it's the user's turn:
         *   Enable card selection in their hand.
-        *   Client-side logic highlights playable cards based on `ledSuit`, hand contents, and `trumpSuit` (if revealed), following `Rules-V3.md` (follow suit mandatory, trump rules).
+        *   Client-side logic highlights playable cards based on `ledSuit`, hand contents, and `trumpSuit` (if revealed), following `Rules-V3.md`:
+            *   Must follow suit if possible.
+            *   If unable to follow suit:
+                *   If user is **not** the Declarer: Can play any card (including trump, potentially triggering the "Ask Trump?" prompt if trump is unknown).
+                *   If user **is** the Declarer: Can choose to play **either** a trump card (if available) **or** any card from another plain suit (a discard).
         *   Clicking a valid card calls `playCard` Cloud Function (`gameId`, `card`).
-        *   Cloud Function performs authoritative validation (`isValidPlay`), updates `currentTrick`, updates player's hand, potentially sets `trumpRevealed` flag (if Declarer plays trump when unable to follow suit), determines trick winner if trick complete, updates scores/tricks won, advances `currentTurnIndex`, and potentially sets `status` to `round_over` if last trick.
+        *   Cloud Function performs authoritative validation (`isValidPlay`), updates `currentTrick`, updates player's hand, potentially sets `trumpRevealed` flag (only if Declarer *chooses* to play trump when unable to follow suit), determines trick winner if trick complete, updates scores/tricks won, advances `currentTurnIndex`, and potentially sets `status` to `round_over` if last trick.
     *   Animate played cards moving to the center trick area.
     *   Update opponent card counts.
 *   **Trump Reveal Mechanism:**

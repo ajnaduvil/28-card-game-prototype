@@ -473,17 +473,16 @@ export const useGameStore = create<GameState & GameActions>()(
                     return; // Do not proceed with invalid play
                 }
 
-                // Check if declarer is revealing trump by playing it
+                // NEW LOGIC: Check if declarer IS revealing trump by playing it WHEN unable to follow suit.
                 const isDeclarer = currentPlayer.id === state.trumpState.finalDeclarerId;
                 let isRevealingTrump = false;
-
                 if (
                     isDeclarer &&
-                    !state.trumpState.trumpRevealed &&
-                    state.trumpState.finalTrumpSuit &&
-                    card.suit === state.trumpState.finalTrumpSuit &&
-                    state.currentTrick.cards.length > 0 && // Not leading a trick
-                    state.currentTrick.leadSuit !== card.suit // Not following suit
+                    !state.trumpState.trumpRevealed && // Trump not already known
+                    state.trumpState.finalTrumpSuit && // Trump suit is set
+                    card.suit === state.trumpState.finalTrumpSuit && // Card played is trump
+                    state.currentTrick.cards.length > 0 && // Not leading the trick
+                    !currentPlayer.hand.some(c => c.suit === state.currentTrick?.leadSuit) // Player *cannot* follow suit
                 ) {
                     isRevealingTrump = true;
                 }
@@ -501,7 +500,7 @@ export const useGameStore = create<GameState & GameActions>()(
                 state.currentTrick.cards.push(card);
                 state.currentTrick.playedBy.push(playerId);
 
-                // Handle trump reveal by declarer
+                // Handle trump reveal by declarer IF they played trump when unable to follow suit
                 if (isRevealingTrump) {
                     state.trumpState.trumpRevealed = true;
 

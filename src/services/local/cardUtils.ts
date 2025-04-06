@@ -137,11 +137,14 @@ export const isValidPlay = (
             }
         } else {
             // Trump is not revealed
-            // Declarer MUST play trump if they have it and cannot follow suit
-            if (isDeclarer && hasTrump) {
-                return card.suit === finalTrumpSuit;
+            // If the player is the declarer and cannot follow suit, they have the OPTION
+            // to play trump (ruff) or discard another plain suit card.
+            if (isDeclarer) {
+                // Any card is a valid play for the declarer in this situation.
+                return true;
             } else {
-                // Non-declarer, or declarer without trump, can play any card (ruff or discard)
+                // Non-declarer can play any card (ruff or discard) if they cannot follow suit.
+                // Note: Playing trump might trigger the "Ask Trump?" mechanism later.
                 return true;
             }
         }
