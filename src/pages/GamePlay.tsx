@@ -121,6 +121,7 @@ const GamePlay = () => {
             originalBidderIndex={originalBidderIndex}
             currentTrick={currentTrick}
             trumpState={trumpState}
+            foldedCard={foldedCard}
             onCardPlay={handleCardPlay}
             onRequestTrumpReveal={handleRequestTrumpReveal}
             gameMode={gameMode}
@@ -155,6 +156,7 @@ const GamePlay = () => {
               originalBidderIndex={originalBidderIndex}
               currentTrick={currentTrick}
               trumpState={trumpState}
+              foldedCard={foldedCard}
               onCardPlay={handleCardPlay}
               onRequestTrumpReveal={handleRequestTrumpReveal}
               gameMode={gameMode}

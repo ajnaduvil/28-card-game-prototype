@@ -4,6 +4,7 @@ import { Trick, TrumpState } from "../../models/game";
 import PlayerHand from "./PlayerHand";
 import PlayArea from "./PlayArea";
 import { Card as CardModel } from "../../models/card";
+import Card from "./Card";
 
 interface GameBoardProps {
   players: Player[];
@@ -12,6 +13,7 @@ interface GameBoardProps {
   originalBidderIndex: number;
   currentTrick: Trick | null;
   trumpState: TrumpState;
+  foldedCard?: CardModel | null;
   onCardPlay: (card: CardModel) => void;
   onRequestTrumpReveal: () => void;
   gameMode: "3p" | "4p";
@@ -24,6 +26,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   originalBidderIndex,
   currentTrick,
   trumpState,
+  foldedCard,
   onCardPlay,
   onRequestTrumpReveal,
   gameMode,
@@ -180,19 +183,23 @@ const GameBoard: React.FC<GameBoardProps> = ({
               )}
             </div>
 
-            {/* Player's folded trump card (if they are the declarer) */}
-            {isDeclarer &&
-              (trumpState.provisionalTrumpCardId ||
-                trumpState.finalTrumpCardId) && (
-                <div className="absolute left-0 bottom-16 bg-black bg-opacity-70 rounded-md p-2 shadow-lg border border-yellow-500 z-10">
-                  <div className="text-xs text-white mb-1 text-center">
-                    Folded Trump
-                  </div>
+            {/* Player's folded trump card area */}
+            {isDeclarer && (
+              <div className="absolute left-0 bottom-16 bg-black bg-opacity-70 rounded-md p-2 shadow-lg border border-yellow-500 z-10">
+                <div className="text-xs text-white mb-1 text-center">
+                  {trumpState.trumpRevealed ? "Revealed Trump" : "Folded Trump"}
+                </div>
+                {trumpState.trumpRevealed && foldedCard ? (
+                  // If revealed, show the actual folded card
+                  <Card card={foldedCard} size="sm" isSelectable={false} />
+                ) : (
+                  // Otherwise, show the placeholder
                   <div className="w-12 h-16 bg-gray-800 rounded-md border-2 border-yellow-500 flex items-center justify-center rotate-12 shadow-md">
                     <span className="text-lg">🃏</span>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
+            )}
 
             <PlayerHand
               hand={player.hand}

@@ -7,7 +7,8 @@ import {
     shuffleDeck,
     dealCards,
     calculateCardPoints,
-    determineTrickWinner
+    determineTrickWinner,
+    isValidPlay
 } from '../services/local/cardUtils';
 
 // Define the actions that can be performed on the game state
@@ -374,7 +375,6 @@ export const useGameStore = create<GameState & GameActions>()(
                     // Keep the provisional trump
                     state.trumpState.finalTrumpSuit = state.trumpState.provisionalTrumpSuit;
                     state.trumpState.finalTrumpCardId = state.trumpState.provisionalTrumpCardId;
-                    state.trumpState.trumpRevealed = true;
                     state.trumpState.declarerChoseKeep = true;
                 } else {
                     // Change to a new trump
@@ -395,7 +395,6 @@ export const useGameStore = create<GameState & GameActions>()(
                     // Update trump state
                     state.trumpState.finalTrumpSuit = newTrumpCard.suit;
                     state.trumpState.finalTrumpCardId = newTrumpCardId;
-                    state.trumpState.trumpRevealed = true;
                     state.trumpState.declarerChoseNew = true;
 
                     // Swap cards (remove new trump, add folded card back)
@@ -460,6 +459,20 @@ export const useGameStore = create<GameState & GameActions>()(
 
                 const card = currentPlayer.hand[cardIndex];
 
+                // Validate the play using the utility function
+                if (!isValidPlay(
+                    card,
+                    playerId,
+                    currentPlayer.hand,
+                    state.currentTrick!,
+                    state.trumpState,
+                    state.trumpState.finalDeclarerId
+                )) {
+                    console.error("Invalid card play attempt");
+                    // Optionally, provide more specific feedback to the UI here
+                    return; // Do not proceed with invalid play
+                }
+
                 // Check if declarer is revealing trump by playing it
                 const isDeclarer = currentPlayer.id === state.trumpState.finalDeclarerId;
                 let isRevealingTrump = false;
@@ -493,21 +506,14 @@ export const useGameStore = create<GameState & GameActions>()(
                     state.trumpState.trumpRevealed = true;
 
                     // Return the folded card to the declarer's hand if it hasn't been returned yet
-                    if (!state.trumpState.foldedCardReturned && state.trumpState.finalTrumpCardId) {
-                        // Find the folded card in the deck
-                        const foldedCardIndex = state.deck.findIndex(
-                            card => card.id === state.trumpState.finalTrumpCardId
-                        );
-
-                        if (foldedCardIndex >= 0) {
-                            // Add the card to declarer's hand and remove from deck
-                            const foldedCard = state.deck[foldedCardIndex];
-                            currentPlayer.hand.push(foldedCard);
-                            state.deck.splice(foldedCardIndex, 1);
-
-                            // Mark as returned
-                            state.trumpState.foldedCardReturned = true;
+                    if (!state.trumpState.foldedCardReturned && state.foldedCard) {
+                        // Check if the card isn't already somehow in hand (safety)
+                        if (!currentPlayer.hand.some(c => c.id === state.foldedCard!.id)) {
+                            currentPlayer.hand.push(state.foldedCard);
                         }
+                        state.trumpState.foldedCardReturned = true;
+                        // Optional: Clear foldedCard if it represents only the *physical* folded state
+                        // state.foldedCard = undefined; 
                     }
                 }
 
@@ -610,26 +616,19 @@ export const useGameStore = create<GameState & GameActions>()(
                 success = true;
 
                 // Return the folded card to the declarer's hand if it hasn't been returned yet
-                if (!state.trumpState.foldedCardReturned && state.trumpState.finalTrumpCardId) {
+                if (!state.trumpState.foldedCardReturned && state.foldedCard) {
                     const declarerIndex = state.players.findIndex(
                         p => p.id === state.trumpState.finalDeclarerId
                     );
 
                     if (declarerIndex >= 0) {
-                        // Find the folded card in the deck
-                        const foldedCardIndex = state.deck.findIndex(
-                            card => card.id === state.trumpState.finalTrumpCardId
-                        );
-
-                        if (foldedCardIndex >= 0) {
-                            // Add the card to declarer's hand and remove from deck
-                            const foldedCard = state.deck[foldedCardIndex];
-                            state.players[declarerIndex].hand.push(foldedCard);
-                            state.deck.splice(foldedCardIndex, 1);
-
-                            // Mark as returned
-                            state.trumpState.foldedCardReturned = true;
+                        // Check if the card isn't already somehow in hand (safety)
+                        if (!state.players[declarerIndex].hand.some(c => c.id === state.foldedCard!.id)) {
+                            state.players[declarerIndex].hand.push(state.foldedCard);
                         }
+                        state.trumpState.foldedCardReturned = true;
+                        // Optional: Clear foldedCard if it represents only the *physical* folded state
+                        // state.foldedCard = undefined; 
                     }
                 }
             });

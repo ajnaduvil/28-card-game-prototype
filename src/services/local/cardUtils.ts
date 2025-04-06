@@ -101,46 +101,39 @@ export const isValidPlay = (
     const { finalTrumpSuit, trumpRevealed } = trumpState;
     const isDeclarer = playerId === finalDeclarerId;
 
-    // If this is the first card of the trick (leading)
+    // Leading a trick?
     if (currentTrick.cards.length === 0) {
-        // Prevent leading with trump if trump is not revealed
-        if (!trumpRevealed && finalTrumpSuit && card.suit === finalTrumpSuit) {
-            return false; // Cannot lead with unrevealed trump
+        // Prevent DECLARER from leading with unrevealed trump
+        if (isDeclarer && !trumpRevealed && finalTrumpSuit && card.suit === finalTrumpSuit) {
+            return false;
         }
-        return true; // Any other card is valid for leading
+        return true; // Allowed otherwise
     }
 
+    // Following suit?
     const leadSuit = currentTrick.leadSuit;
+    const hasLeadSuit = hand.some(c => c.suit === leadSuit);
 
-    // Check if player has any cards of the lead suit
-    const hasSuit = hand.some(c => c.suit === leadSuit);
-
-    // If player has the lead suit, they must play it
-    if (hasSuit) {
+    if (hasLeadSuit) {
+        // Must follow suit if possible
         return card.suit === leadSuit;
-    }
+    } else {
+        // Cannot follow suit
+        const hasTrump = finalTrumpSuit ? hand.some(c => c.suit === finalTrumpSuit) : false;
 
-    // If player cannot follow suit:
-    const hasTrump = finalTrumpSuit ? hand.some(c => c.suit === finalTrumpSuit) : false;
-
-    // Case 1: Trump suit is known (revealed)
-    if (trumpRevealed && finalTrumpSuit) {
-        // If player has trump, they MUST play a trump card
-        if (hasTrump) {
-            return card.suit === finalTrumpSuit;
-        } else {
-            // If player has no trump, any card is valid (discard)
+        if (trumpRevealed) {
+            // Trump is known, rule says player MAY play trump or discard. Any card is valid.
             return true;
+        } else {
+            // Trump is not revealed
+            // Declarer MUST play trump if they have it and cannot follow suit
+            if (isDeclarer && hasTrump) {
+                return card.suit === finalTrumpSuit;
+            } else {
+                // Non-declarer, or declarer without trump, can play any card (ruff or discard)
+                return true;
+            }
         }
-    }
-    // Case 2: Trump suit is NOT known (not revealed)
-    else {
-        // If player is the declarer and has trump, they must play it
-        if (isDeclarer && hasTrump) {
-            return card.suit === finalTrumpSuit;
-        }
-        // For non-declarers or if declarer doesn't have trump, any card is valid
-        return true;
     }
 };
 
