@@ -82,7 +82,7 @@ The dealer deals cards clockwise in two distinct batches, with a bidding round a
 ### Phase 2: Second Bidding Round & Final Trump Selection
 
 1.  **Eligibility:** All players can participate in Round 2 bidding regardless of whether they passed in Round 1, as they now have new cards. As in Round 1, a player who passes may still bid again later if the bidding continues and another player makes a higher bid.
-2.  **Starting Bidder for Phase 2:** The winner of the first bidding round (Bidder 1) starts the bidding in Round 2. Note that this Starting Bidder might or might not be the same person as the Original Starting Bidder from Phase 1.
+2.  **Starting Bidder for Phase 2:** The winner of the first bidding round (Bidder 1) starts the bidding in Round 2. Note that this Starting Bidder might or might not be the same person as the Original Starting Bidder from Phase 1. Unlike in Phase 1, this Starting Bidder CAN choose to pass, in which case the bidding opportunity moves to the next player clockwise.
 3.  **Minimum Bid:**
     *   **4-Player:** 24
     *   **3-Player:** 22
@@ -216,7 +216,7 @@ In these cases, the final settlement occurs at the end based on the difference i
 *   **Trump Leading Restriction:** The Declarer CANNOT lead a trick with a card of the trump suit if the trump has not yet been revealed.
 *   **Strategic Exception to Following Suit:** If a non-declarer leads with a card of the trump suit (without knowing it's trump since it hasn't been revealed yet), and the declarer has only the folded card of that suit, the declarer can choose to play any other card instead of following suit. This allows the declarer to protect their trump card and maintain the secrecy of the trump suit.
 *   **Original Bidder Leads:** The Original Starting Bidder (player to dealer's left) *always* leads the first trick, regardless of who won the final bid.
-*   **Bidding Starters:** The Original Starting Bidder begins Phase 1 bidding, while the winner of Phase 1 (Bidder 1) begins Phase 2 bidding. These may or may not be the same player.
+*   **Bidding Starters:** The Original Starting Bidder begins Phase 1 bidding and MUST make at least the minimum bid (cannot pass). The winner of Phase 1 (Bidder 1) begins Phase 2 bidding but CAN choose to pass. These may or may not be the same player.
 *   **Dealer Rotation:** After each round, the Original Starting Bidder becomes the dealer for the next round.
 *   **Tiered Scoring:** Stakes exchanged depend on whether the final bid was made in Round 1 or Round 2. The special Honors scoring applies ONLY if the final bid was established during Round 1. All bids established in Round 2 follow the Round 2 scoring rules regardless of the bid value.
 *   **Concession Option:** The bid winner may concede if they believe they cannot make their bid. This option is available at any point - immediately after winning the bid in Phase 1, after winning the final bid in Phase 2, or during trick play (as long as they have not yet won enough points to meet their bid). Concession results in an automatic loss - the entire team loses in 4-player mode, and the individual Declarer loses in 3-player mode.
@@ -242,6 +242,7 @@ In these cases, the final settlement occurs at the end based on the difference i
 *   **Full Game:** A complete game that continues until one team (in 4-player mode) or one player (in 3-player mode) loses all their stakes.
 *   **Honors:** A bid made during the first bidding round that *exceeds* 18 (3-Player) or *exceeds* 20 (4-Player). The special Honors scoring (+/- 2 stakes) applies ONLY if this bid becomes the final contract AND was established during the first bidding round. If bidding continues to Round 2, the Round 2 scoring rules apply regardless of the bid value.
 *   **Lead:** To play the first card to a trick.
+*   **Lead Suit:** The suit of the first card played in a trick. All players must follow this suit if they have cards of that suit in their hand (with certain exceptions as noted in the rules).
 *   **Original Starting Bidder:** The player to the dealer's left, who starts the bidding and leads the first trick. This player becomes the dealer for the next round.
 *   **Plain Suit:** Any suit that is not the trump suit.
 *   **Round:** A complete cycle of gameplay for one deal, consisting of dealing, two bidding phases, playing all 8 tricks, and scoring for that deal.
