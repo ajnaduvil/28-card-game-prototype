@@ -337,17 +337,19 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
           return (
             <div
               key={card.id}
-              className={`absolute transition-all duration-300 ${
-                isLeadSuit ? "transform hover:-translate-y-2" : ""
-              }`}
+              className="absolute transition-all duration-300"
               style={{
                 left: `${index * offset}px`,
-                zIndex: isSelected ? 10 : index,
+                zIndex: isSelected ? 10 : isPlayable ? 5 : index,
+                transform: isPlayable ? "translateY(-8px)" : "none",
               }}
             >
               <div className="relative">
                 {isFoldedCard && (
                   <div className="absolute -inset-1 bg-purple-500 opacity-50 rounded-lg animate-pulse"></div>
+                )}
+                {isPlayable && !isFoldedCard && (
+                  <div className="absolute -inset-0.5 bg-green-500 opacity-20 rounded-lg"></div>
                 )}
                 <Card
                   card={hideCards ? undefined : card}
@@ -357,7 +359,7 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
                   isLeadSuit={isLeadSuit}
                   onClick={handleCardClick}
                   size="md"
-                  showPointValue={isCurrentPlayer && !hideCards}
+                  showPointValue={false}
                   faceDown={hideCards}
                   showBack={hideCards}
                 />

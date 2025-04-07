@@ -61,13 +61,13 @@ const Card: React.FC<CardProps> = ({
   };
 
   const cardClasses = `
-    relative 
-    ${sizeClasses[size]} 
-    rounded-lg 
+    relative
+    ${sizeClasses[size]}
+    rounded-lg
     shadow-lg
     transition-all duration-300
-    ${isSelected ? "transform -translate-y-6 ring-2 ring-indigo-500" : ""} 
-    ${isPlayable ? "cursor-pointer hover:-translate-y-2 hover:shadow-xl" : ""}
+    ${isSelected ? "transform -translate-y-6 ring-2 ring-indigo-500" : ""}
+    ${isPlayable ? "cursor-pointer hover:-translate-y-3 hover:shadow-xl" : ""}
     ${
       !isPlayable && isSelectable
         ? "opacity-70 hover:opacity-90 hover:-translate-y-1 cursor-pointer"
@@ -75,6 +75,7 @@ const Card: React.FC<CardProps> = ({
     }
     ${faceDown ? "opacity-70" : ""}
     ${isLeadSuit && !faceDown ? "ring-2 ring-blue-500" : ""}
+    ${isPlayable && isLeadSuit && !faceDown ? "transform -translate-y-3" : ""}
   `;
 
   // Add a subtle 3D effect to cards
@@ -127,12 +128,7 @@ const Card: React.FC<CardProps> = ({
         </div>
       )}
 
-      {/* Lead suit indicator */}
-      {isLeadSuit && !faceDown && !isSelected && (
-        <div className="absolute -top-2 -left-2 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-md">
-          L
-        </div>
-      )}
+      {/* Lead suit indicator - now just a subtle highlight instead of an 'L' badge */}
     </div>
   );
 };
