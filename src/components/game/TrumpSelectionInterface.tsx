@@ -257,24 +257,26 @@ const TrumpSelectionInterface: React.FC<TrumpSelectionInterfaceProps> = ({
             </p>
           </div>
 
-          {/* Show provisional trump card and suit */}
-          <div className="provisional-trump mb-3 p-3 bg-slate-800 rounded-lg text-center border border-slate-700">
-            <p className="text-slate-300 text-sm mb-1">Provisional Trump:</p>
-            <div className="flex justify-center items-center gap-3">
-              {foldedCard ? (
-                <>
-                  <Card card={foldedCard} size="md" />
-                  <div>
-                    <span className="text-lg font-bold text-indigo-400">
-                      {trumpState.provisionalTrumpSuit}
-                    </span>
-                  </div>
-                </>
-              ) : (
-                <span className="text-amber-400">No card selected yet</span>
-              )}
+          {/* Show provisional trump card and suit only if the bidder hasn't changed */}
+          {!bidderChanged && (
+            <div className="provisional-trump mb-3 p-3 bg-slate-800 rounded-lg text-center border border-slate-700">
+              <p className="text-slate-300 text-sm mb-1">Provisional Trump:</p>
+              <div className="flex justify-center items-center gap-3">
+                {foldedCard ? (
+                  <>
+                    <Card card={foldedCard} size="md" />
+                    <div>
+                      <span className="text-lg font-bold text-indigo-400">
+                        {trumpState.provisionalTrumpSuit}
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <span className="text-amber-400">No card selected yet</span>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           {mustKeepProvisional ? (
             // If must keep provisional trump, show only confirmation button
