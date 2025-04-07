@@ -31,6 +31,7 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
   const requestTrumpRevealAction = useGameStore(
     (state) => state.requestTrumpReveal
   );
+  const foldedCard = useGameStore((state) => state.foldedCard);
 
   const [playableCards, setPlayableCards] = useState<Record<string, boolean>>(
     {}
@@ -46,6 +47,17 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
     useState<boolean>(false);
   const [cardPendingRevealChoice, setCardPendingRevealChoice] =
     useState<CardModel | null>(null);
+  const [mustPlayFoldedCard, setMustPlayFoldedCard] = useState<boolean>(false);
+  const [revealedFoldedCardId, setRevealedFoldedCardId] = useState<
+    string | null
+  >(null);
+
+  useEffect(() => {
+    if (!isCurrentPlayer) {
+      setMustPlayFoldedCard(false);
+      setRevealedFoldedCardId(null);
+    }
+  }, [isCurrentPlayer]);
 
   useEffect(() => {
     if (!isCurrentPlayer || !currentTrick || !trumpState) {
@@ -61,23 +73,35 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
     const playableMap: Record<string, boolean> = {};
     const leadSuitMap: Record<string, boolean> = {};
 
-    hand.forEach((card) => {
-      playableMap[card.id] = isValidPlay(
-        card,
-        playerId,
-        hand,
-        currentTrick,
-        trumpState,
-        finalDeclarerId
-      );
+    if (mustPlayFoldedCard && revealedFoldedCardId) {
+      hand.forEach((card) => {
+        playableMap[card.id] = card.id === revealedFoldedCardId;
+        if (
+          currentTrick.cards.length > 0 &&
+          currentTrick.leadSuit === card.suit
+        ) {
+          leadSuitMap[card.id] = true;
+        }
+      });
+    } else {
+      hand.forEach((card) => {
+        playableMap[card.id] = isValidPlay(
+          card,
+          playerId,
+          hand,
+          currentTrick,
+          trumpState,
+          finalDeclarerId
+        );
 
-      if (
-        currentTrick.cards.length > 0 &&
-        currentTrick.leadSuit === card.suit
-      ) {
-        leadSuitMap[card.id] = true;
-      }
-    });
+        if (
+          currentTrick.cards.length > 0 &&
+          currentTrick.leadSuit === card.suit
+        ) {
+          leadSuitMap[card.id] = true;
+        }
+      });
+    }
 
     const canFollow =
       currentTrick.cards.length > 0 &&
@@ -91,14 +115,40 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
         !trumpState.trumpRevealed
     );
 
-    // Set whether declarer can reveal trump (when can't follow suit and trump not revealed)
+    const isLeadSuitTrump =
+      currentTrick.cards.length > 0 &&
+      currentTrick.leadSuit === trumpState.finalTrumpSuit;
+
+    // For declarer: offer trump reveal when:
+    // 1. It's their turn, and
+    // 2. Trump is not already revealed, and
+    // 3. Either:
+    //    a. They can't follow suit (regular case), or
+    //    b. The declarer has ONLY the folded card as their only trump card when trump is led
+
+    // Check if declarer has the folded card in hand
+    const hasFoldedCard =
+      !!foldedCard && hand.some((card) => card.id === foldedCard.id);
+
+    // Count how many trump cards declarer has
+    const trumpCardCount = hand.filter(
+      (card) => card.suit === trumpState.finalTrumpSuit
+    ).length;
+
+    // Determine if declarer has ONLY the folded card as their only trump
+    const hasOnlyFoldedTrump =
+      hasFoldedCard &&
+      trumpCardCount === 1 &&
+      foldedCard?.suit === trumpState.finalTrumpSuit;
+
     setCanDeclarerRevealTrump(
       isCurrentPlayer &&
-        !canFollow &&
-        currentTrick.cards.length > 0 &&
         playerId === finalDeclarerId &&
         !trumpState.trumpRevealed &&
-        trumpState.finalTrumpSuit !== undefined
+        trumpState.finalTrumpSuit !== undefined &&
+        ((!canFollow && currentTrick.cards.length > 0) ||
+          (isLeadSuitTrump && hasOnlyFoldedTrump)) &&
+        !mustPlayFoldedCard
     );
 
     setPlayableCards(playableMap);
@@ -120,6 +170,9 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
     finalDeclarerId,
     showDeclarerRevealChoice,
     cardPendingRevealChoice,
+    mustPlayFoldedCard,
+    revealedFoldedCardId,
+    foldedCard,
   ]);
 
   const handleCardClick = (card: CardModel) => {
@@ -132,18 +185,35 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
       return;
     }
 
+    if (mustPlayFoldedCard && revealedFoldedCardId) {
+      if (card.id === revealedFoldedCardId) {
+        playCardAction(playerId, card.id);
+        setMustPlayFoldedCard(false);
+        setRevealedFoldedCardId(null);
+      } else {
+        console.log("You must play the revealed folded card.");
+      }
+      return;
+    }
+
     if (playableCards[card.id]) {
       const isDeclarer = playerId === finalDeclarerId;
       const isTrumpCard = card.suit === trumpState.finalTrumpSuit;
+      const isLeadSuitTrump =
+        currentTrick.cards.length > 0 &&
+        currentTrick.leadSuit === trumpState.finalTrumpSuit;
+      const isLeadingTrick = currentTrick.cards.length === 0;
 
       console.log(
-        `handleCardClick: Card=${card.id}, isDeclarer=${isDeclarer}, trumpRevealed=${trumpState.trumpRevealed}, isTrumpCard=${isTrumpCard}, finalTrumpSuit=${trumpState.finalTrumpSuit}`
-      );
-      console.log(
-        `===> Props inside handleCardClick: playerId=${playerId}, finalDeclarerId=${finalDeclarerId}`
+        `handleCardClick: Card=${card.id}, isDeclarer=${isDeclarer}, trumpRevealed=${trumpState.trumpRevealed}, isTrumpCard=${isTrumpCard}, finalTrumpSuit=${trumpState.finalTrumpSuit}, isLeadSuitTrump=${isLeadSuitTrump}, isLeadingTrick=${isLeadingTrick}`
       );
 
-      if (isDeclarer && !trumpState.trumpRevealed && isTrumpCard) {
+      if (
+        isDeclarer &&
+        !trumpState.trumpRevealed &&
+        isTrumpCard &&
+        (isLeadingTrick || !isLeadSuitTrump)
+      ) {
         console.log(">>> Condition met: Showing declarer reveal choice.");
         setSelectedCard(card);
         setCardPendingRevealChoice(card);
@@ -167,8 +237,13 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
   };
 
   const handleDeclarerRevealTrump = () => {
-    if (declarerRevealTrumpAction(playerId)) {
-      // If trump was successfully revealed, update UI
+    if (declarerRevealTrumpAction(playerId) && foldedCard) {
+      console.log(
+        "Trump revealed. Declarer must now play the folded card:",
+        foldedCard.id
+      );
+      setMustPlayFoldedCard(true);
+      setRevealedFoldedCardId(foldedCard.id);
       setCanDeclarerRevealTrump(false);
     }
   };
@@ -214,6 +289,12 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
         </button>
       )}
 
+      {mustPlayFoldedCard && revealedFoldedCardId && (
+        <div className="mb-2 bg-red-500 text-white py-1 px-3 rounded text-sm animate-pulse">
+          Play the revealed folded card
+        </div>
+      )}
+
       {currentTrick &&
         currentTrick.cards.length > 0 &&
         currentTrick.leadSuit && (
@@ -222,21 +303,20 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
           </div>
         )}
 
-      {/* --- Add Declarer Choice Buttons --- */}
       {showDeclarerRevealChoice && cardPendingRevealChoice && (
         <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 z-20 flex flex-col items-center space-y-1 bg-gray-800 p-2 rounded shadow-lg">
           <p className="text-white text-xs mb-1">Play Trump:</p>
           <div className="flex space-x-2">
             <button
               type="button"
-              onClick={() => handleDeclarerChoice(false)} // Play Hidden
+              onClick={() => handleDeclarerChoice(false)}
               className="px-2 py-1 bg-gray-600 hover:bg-gray-500 text-white text-xs rounded"
             >
               Keep Hidden
             </button>
             <button
               type="button"
-              onClick={() => handleDeclarerChoice(true)} // Play & Reveal
+              onClick={() => handleDeclarerChoice(true)}
               className="px-2 py-1 bg-green-600 hover:bg-green-500 text-white text-xs rounded"
             >
               Reveal Trump
@@ -244,10 +324,11 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
           </div>
         </div>
       )}
-      {/* --- End Declarer Choice Buttons --- */}
 
       <div className="flex relative" style={{ height: "135px" }}>
         {hand.map((card, index) => {
+          const isFoldedCard =
+            mustPlayFoldedCard && card.id === revealedFoldedCardId;
           const isPlayable = isCurrentPlayer && playableCards[card.id];
           const isSelected = selectedCard?.id === card.id;
           const isLeadSuit = leadSuitCards[card.id];
@@ -265,6 +346,9 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
               }}
             >
               <div className="relative">
+                {isFoldedCard && (
+                  <div className="absolute -inset-1 bg-purple-500 opacity-50 rounded-lg animate-pulse"></div>
+                )}
                 <Card
                   card={hideCards ? undefined : card}
                   isPlayable={isPlayable}
