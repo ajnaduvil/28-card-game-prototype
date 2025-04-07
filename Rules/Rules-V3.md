@@ -2,7 +2,7 @@
 
 ## 1. Introduction
 
-"28" (Twenty-Eight / Irupathiyettu) or "Lelam" is a trick-taking card game originating from Kerala, South India. It is typically played by 3 or 4 players. The primary objective is to win tricks containing valuable cards to meet or exceed a contract ("bid") determined through two rounds of auction-style bidding per hand. Key features include partnerships (in 4-player mode), a hidden trump suit determined by the final bidder and physically set aside, distinct rules and decks for 3 and 4 players, and specific procedures for leading tricks and revealing the trump.
+"28" (Twenty-Eight / Irupathiyettu) or "Lelam" is a trick-taking card game originating from Kerala, South India. It is typically played by 3 or 4 players. The primary objective is to win tricks containing valuable cards to meet or exceed a contract ("bid") determined through two rounds of auction-style bidding per hand. A full game continues until one team (in 4-player mode) or one player (in 3-player mode) loses all their stakes. Key features include partnerships (in 4-player mode), a hidden trump suit determined by the final bidder and physically set aside, distinct rules and decks for 3 and 4 players, and specific procedures for leading tricks and revealing the trump.
 
 ## 2. Core Concepts
 
@@ -30,16 +30,19 @@
     *   **4-Player:** Two fixed partnerships. Partners sit opposite each other and combine their scores.
     *   **3-Player:** Players play individually. However, for the duration of the play phase of a round, the two players who did *not* win the final bid form a temporary alliance, playing against the lone Final Declarer. Their captured points are combined against the Declarer.
 *   **Original Starting Bidder:** The player seated immediately to the dealer's right. This position is important for leading the first trick.
+*   **Stakes:** Units of money or points that players exchange after each round based on the outcome.
+    *   **4-Player:** Each team starts with an agreed-upon amount of stakes. A full game continues until one team loses all their stakes.
+    *   **3-Player:** Each player starts with an agreed-upon amount of stakes. A full game continues until one player loses all their stakes.
 
 ## 3. Game Setup
 
-1.  **Choose Dealer:** Randomly for the first round (e.g., high card draw). The deal rotates clockwise for subsequent rounds.
+1.  **Choose Dealer:** Randomly for the first round (e.g., high card draw). For subsequent rounds, the Original Starting Bidder from the previous round becomes the next dealer.
 2.  **Select Deck:** Use the 32-card deck for 4 players or the 24-card deck for 3 players.
 3.  **Shuffle:** The dealer shuffles the appropriate deck thoroughly.
 4.  **Seating:** In 4-player mode, partners sit opposite each other.
-5.  **(Optional) Starting Stakes:** Before the first round, agree on a starting amount of money or coins.
-    *   **4-Player:** Each team starts with a fixed, equal amount.
-    *   **3-Player:** Each player starts with a fixed, equal amount.
+5.  **Starting Stakes:** Before the first round, agree on a starting amount of money or coins to be used as stakes. This is essential as the game continues until one team or player loses all their stakes.
+    *   **4-Player:** Each *team* starts with a fixed, shared pool of stakes (e.g., 20 units). Stakes are exchanged between the two teams.
+    *   **3-Player:** Each *player* starts with their own fixed, individual amount of stakes (e.g., 20 units). Stakes are exchanged between the Declarer and each opponent individually.
 
 ## 4. Dealing Process (Two Batches)
 
@@ -129,23 +132,45 @@ The dealer deals cards clockwise in two distinct batches, with a bidding round a
 3.  **Award Game Points & Settle Stakes (Confirm House Rules):** Accumulate Game Points and exchange stakes based on the round outcome.
     *   **If Final Bid was from Round 1:**
         *   **Normal Bid (<=18 for 3p / <=20 for 4p):**
-            *   Bid Made: +1 Game Point for Declarer('s side). Winning side collects 1 unit of stake from the losing side (or each losing player in 3p).
-            *   Bid Failed: -1 Game Point for Declarer('s side). Declarer('s side) pays 1 unit of stake to the winning side (or each winning player in 3p).
+            *   Bid Made: +1 Game Point for Declarer('s side).
+                *   4p: Winning team collects 1 unit of stake from the losing team.
+                *   3p: Declarer collects 1 unit of stake *from each* opponent.
+            *   Bid Failed: -1 Game Point for Declarer('s side).
+                *   4p: Declarer's team pays 1 unit of stake to the winning team.
+                *   3p: Declarer pays 1 unit of stake *to each* opponent.
         *   **Honors Bid (>18 for 3p / >20 for 4p):**
-            *   Bid Made: +2 Game Points for Declarer('s side). Winning side collects 2 units of stake from the losing side (or each losing player in 3p).
-            *   Bid Failed: -2 Game Points for Declarer('s side). Declarer('s side) pays 2 units of stake to the winning side (or each winning player in 3p).
+            *   Bid Made: +2 Game Points for Declarer('s side).
+                *   4p: Winning team collects 2 units of stake from the losing team.
+                *   3p: Declarer collects 2 units of stake *from each* opponent.
+            *   Bid Failed: -2 Game Points for Declarer('s side).
+                *   4p: Declarer's team pays 2 units of stake to the winning team.
+                *   3p: Declarer pays 2 units of stake *to each* opponent.
     *   **If Final Bid was from Round 2 (Minimum Bid 24/22):**
         *   **4-Player Mode (Min Bid 24):**
-            *   Bid Made: +2 Game Points for Declarer's team. Winning team collects 2 units of stake from the losing team.
-            *   Bid Failed: -3 Game Points for Declarer's team. Losing team pays 3 units of stake to the winning team.
+            *   Bid Made: +2 Game Points for Declarer's team. Winning team collects 2 units of stake from the losing team's shared pool.
+            *   Bid Failed: -3 Game Points for Declarer's team. Declarer's team pays 3 units of stake from their shared pool to the winning team.
         *   **3-Player Mode (Min Bid 22):**
-            *   Bid Made: +2 Game Points for Declarer. Declarer collects 2 units of stake *from each* opponent (total 4 units).
-            *   Bid Failed: -4 Game Points for Declarer. Declarer pays 2 units of stake *to each* opponent (total 4 units).
-    *   **"Coat" / "Kap" (Optional):** If the Declarer fails the bid by a large margin or scores very few points (define specific conditions), the Game Points lost/gained and the stakes exchanged may be doubled.
+            *   Bid Made: +2 Game Points for Declarer. Declarer collects 2 units of stake *from each* opponent individually (total 4 units received).
+            *   Bid Failed: -4 Game Points for Declarer. Declarer pays 2 units of stake *to each* opponent individually (total 4 units paid).
 
 ## 7. Winning the Game
 
-The game continues over multiple rounds. The first team (4p) or potentially individual (3p) to reach a predetermined target number of Game Points (e.g., 6, 8, 10, 12) wins the overall game. The final settlement of stakes occurs at the end of the game based on the difference in accumulated stakes or overall Game Points, as agreed beforehand.
+### Definition of a Full Game
+A full game continues until one team (in 4-player mode) or one player (in 3-player mode) loses all their money/stakes. The game consists of multiple rounds, with stakes being exchanged after each round according to the scoring rules.
+
+### Game Progression
+1. **Starting Stakes:** Before the game begins, each team (4p) or individual player (3p) starts with an agreed-upon amount of money or stakes.
+2. **Round Completion:** After each round, stakes are exchanged based on the outcome as described in the Scoring section.
+3. **Elimination:** When a team or player loses all their money, they are eliminated, and the game ends.
+4. **Winner:** The team(s) or player(s) with remaining money at the end are the winners.
+
+### Alternative Winning Conditions (Optional)
+As an alternative to playing until elimination, players may agree beforehand to:
+- Play until a predetermined target number of Game Points (e.g., 6, 8, 10, 12) is reached
+- Play a fixed number of rounds
+- Play for a set amount of time
+
+In these cases, the final settlement of stakes occurs at the end based on the difference in accumulated stakes or overall Game Points, as agreed beforehand.
 
 ## 8. Key Rule Summary & Unique Aspects
 
@@ -155,7 +180,9 @@ The game continues over multiple rounds. The first team (4p) or potentially indi
 *   **Folded Trump Indicator:** Physical card set aside face-down to lock in the secret trump choice.
 *   **Hidden Trump Reveal:** Trump suit is only revealed when requested by a player unable to follow suit, or when the Declarer is forced to play or declare it.
 *   **Original Bidder Leads:** The player to the dealer's right *always* leads the first trick.
+*   **Dealer Rotation:** After each round, the Original Starting Bidder becomes the dealer for the next round.
 *   **Tiered Scoring:** Game points awarded/lost depend on whether the final bid was made in Round 1 or Round 2 (or was Honors).
+*   **Full Game Definition:** A full game continues until one team (4p) or player (3p) loses all their stakes.
 *   **Follow Suit:** To play a card of the same suit as the card led to the trick.
 *   **Honors:** A bid made during the first bidding round that *exceeds* 18 (3-Player) or *exceeds* 20 (4-Player), carrying specific scoring implications if it becomes the final contract.
 *   **Lead:** To play the first card to a trick.
@@ -164,14 +191,18 @@ The game continues over multiple rounds. The first team (4p) or potentially indi
 
 *   **Bid:** A declaration during the auction phase to win a certain number of card points.
 *   **Contract:** The final, highest bid made in a round, which the Declarer must achieve.
+*   **Dealer:** The player responsible for shuffling and dealing the cards for a round. For the first round, the dealer is chosen randomly. For subsequent rounds, the Original Starting Bidder from the previous round becomes the dealer.
 *   **Declarer:** The player who makes the final, highest bid (the Final Declarer).
 *   **Defender:** Any player who is not the Declarer (in 3p) or not on the Declarer's team (in 4p).
 *   **Folded Trump Indicator:** The single card placed face-down by the Declarer representing the secret trump suit.
 *   **Follow Suit:** To play a card of the same suit as the card led to the trick.
+*   **Full Game:** A complete game that continues until one team (in 4-player mode) or one player (in 3-player mode) loses all their stakes.
 *   **Honors:** A bid made during the first bidding round that *exceeds* 18 (3-Player) or *exceeds* 20 (4-Player), carrying specific scoring implications if it becomes the final contract.
 *   **Lead:** To play the first card to a trick.
-*   **Original Starting Bidder:** The player to the dealer's right, who starts the bidding and leads the first trick.
+*   **Original Starting Bidder:** The player to the dealer's right, who starts the bidding and leads the first trick. This player becomes the dealer for the next round.
 *   **Plain Suit:** Any suit that is not the trump suit.
+*   **Round:** A complete cycle of gameplay for one deal, consisting of dealing, two bidding phases, playing all 8 tricks, and scoring for that deal.
 *   **Ruff / Trump (verb):** To play a trump card on a trick when a plain suit was led and the player cannot follow suit.
-*   **Trick:** One round of play where each player plays a single card.
+*   **Stakes:** The units of money or points that players exchange based on the outcome of each round. A full game continues until one team or player loses all their stakes.
+*   **Trick:** One instance of play where each player plays a single card. A full round consists of 8 tricks.
 *   **Trump Suit:** The suit chosen by the Declarer that outranks all other suits for the round.
