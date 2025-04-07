@@ -532,29 +532,49 @@ export const useGameStore = create<GameState & GameActions>()(
                 console.log(`Current player index: ${state.currentPlayerIndex}`);
                 console.log(`Current trick:`, state.currentTrick);
 
-                // *** NEW: Check for forced play of last card (folded trump) ***
+                // Check for declarer's last card and auto-reveal trump if needed
                 const currentPlayerIndex = state.currentPlayerIndex;
                 const currentPlayer = state.players[currentPlayerIndex];
                 const isDeclarer = currentPlayer.id === state.trumpState.finalDeclarerId;
 
+                // Case 1: Declarer's last card is the folded trump card
                 if (
                     isDeclarer &&
                     currentPlayer.hand.length === 1 &&
                     state.foldedCard &&
                     currentPlayer.hand[0].id === state.foldedCard.id &&
-                    !state.trumpState.trumpRevealed // Ensure it wasn't already revealed
+                    !state.trumpState.trumpRevealed
                 ) {
                     console.log("Declarer's last card is folded trump. Forcing reveal and play.");
 
                     // Force reveal
                     state.trumpState.trumpRevealed = true;
                     state.trumpState.foldedCardReturned = true; // Mark as returned implicitly
-                    // Optional: Log this specific reveal type?
 
                     // The card to play IS the folded card
                     cardId = state.foldedCard.id;
                 }
-                // *** END NEW CHECK ***
+                // Case 2: Declarer has only one card left (any card) and trump is not revealed
+                else if (
+                    isDeclarer &&
+                    currentPlayer.hand.length === 1 &&
+                    !state.trumpState.trumpRevealed &&
+                    state.trumpState.finalTrumpSuit // Make sure we have a final trump suit
+                ) {
+                    console.log("Declarer has only one card left. Automatically revealing trump.");
+
+                    // Force reveal trump
+                    state.trumpState.trumpRevealed = true;
+
+                    // If folded card hasn't been returned yet, return it now
+                    if (!state.trumpState.foldedCardReturned && state.foldedCard) {
+                        // Check if the card isn't already in hand (safety)
+                        if (!currentPlayer.hand.some(c => c.id === state.foldedCard!.id)) {
+                            currentPlayer.hand.push(state.foldedCard);
+                        }
+                        state.trumpState.foldedCardReturned = true;
+                    }
+                }
 
                 // Validate we're in the right phase
                 if (state.currentPhase !== 'playing_start_trick' &&
@@ -856,7 +876,7 @@ export const useGameStore = create<GameState & GameActions>()(
             if (get().isReplayMode) return; // Don't record history while in replay mode
 
             set(state => {
-                // Create a partial snapshot of current state 
+                // Create a partial snapshot of current state
                 // excluding history itself to avoid infinite recursion
                 const { history, historyIndex, isReplayMode, ...stateForHistory } = state;
 
