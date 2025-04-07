@@ -360,22 +360,43 @@ export const useGameStore = create<GameState & GameActions>()(
 
                 const currentPlayer = state.players[state.currentPlayerIndex];
 
-                // If no change in the highest bid happened in round 2, must keep the provisional trump
-                // This happens when:
-                // 1. There were no actual bids (only passes) in Round 2, OR
-                // 2. The highest bidder from Round 1 is still the highest bidder in Round 2
-                const highestBidChanged =
-                    state.highestBid2 && // There is a highest bid in Round 2
-                    state.highestBid1 && // There was a highest bid in Round 1
-                    state.highestBid2.playerId !== state.highestBid1.playerId; // Different player
+                // Check if the current player (final declarer) is different from the provisional bidder
+                const bidderChanged = state.trumpState.provisionalBidderId !== state.trumpState.finalDeclarerId;
 
-                if (!highestBidChanged) {
-                    console.log("No change in highest bidder - must keep provisional trump");
-                    keepProvisional = true;
+                // If the bidder changed, we need to return the folded card to the original bidder first
+                if (bidderChanged) {
+                    console.log("Bidder changed - returning folded card to original bidder");
+
+                    // Find the original bidder
+                    const originalBidderIndex = state.players.findIndex(p => p.id === state.trumpState.provisionalBidderId);
+                    if (originalBidderIndex !== -1) {
+                        // Return the folded card to the original bidder
+                        state.players[originalBidderIndex].hand.push(state.foldedCard);
+
+                        // Mark the folded card as returned
+                        state.trumpState.foldedCardReturned = true;
+
+                        // The new bidder must select a new trump card (can't keep provisional)
+                        keepProvisional = false;
+                    }
+                } else {
+                    // If no change in the highest bid happened in round 2, must keep the provisional trump
+                    // This happens when:
+                    // 1. There were no actual bids (only passes) in Round 2, OR
+                    // 2. The highest bidder from Round 1 is still the highest bidder in Round 2
+                    const highestBidChanged =
+                        state.highestBid2 && // There is a highest bid in Round 2
+                        state.highestBid1 && // There was a highest bid in Round 1
+                        state.highestBid2.playerId !== state.highestBid1.playerId; // Different player
+
+                    if (!highestBidChanged) {
+                        console.log("No change in highest bidder - must keep provisional trump");
+                        keepProvisional = true;
+                    }
                 }
 
-                if (keepProvisional) {
-                    // Keep the provisional trump
+                if (keepProvisional && !bidderChanged) {
+                    // Keep the provisional trump (only possible if bidder didn't change)
                     state.trumpState.finalTrumpSuit = state.trumpState.provisionalTrumpSuit;
                     state.trumpState.finalTrumpCardId = state.trumpState.provisionalTrumpCardId;
                     state.trumpState.declarerChoseKeep = true;
@@ -400,11 +421,16 @@ export const useGameStore = create<GameState & GameActions>()(
                     state.trumpState.finalTrumpCardId = newTrumpCardId;
                     state.trumpState.declarerChoseNew = true;
 
-                    // Swap cards (remove new trump, add folded card back)
-                    const foldedCard = state.foldedCard;
+                    // Remove the new trump card from the player's hand
                     currentPlayer.hand.splice(cardIndex, 1);
-                    currentPlayer.hand.push(foldedCard);
-                    state.trumpState.foldedCardReturned = true;
+
+                    // Only add the folded card back if the bidder didn't change
+                    // (if bidder changed, we already returned the card to the original bidder)
+                    if (!bidderChanged) {
+                        // Add the folded card back to the current player's hand
+                        currentPlayer.hand.push(state.foldedCard);
+                        state.trumpState.foldedCardReturned = true;
+                    }
 
                     // Update folded card
                     state.foldedCard = newTrumpCard;
@@ -684,7 +710,7 @@ export const useGameStore = create<GameState & GameActions>()(
                         }
                         state.trumpState.foldedCardReturned = true;
                         // Optional: Clear foldedCard if it represents only the *physical* folded state
-                        // state.foldedCard = undefined; 
+                        // state.foldedCard = undefined;
                     }
                 }
             });
@@ -692,4 +718,4 @@ export const useGameStore = create<GameState & GameActions>()(
             return success;
         }
     }))
-); 
+);

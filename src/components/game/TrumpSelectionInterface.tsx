@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card as CardModel } from "../../models/card";
 import { TrumpState, GamePhase } from "../../models/game";
 import Card from "./Card";
@@ -26,6 +26,21 @@ const TrumpSelectionInterface: React.FC<TrumpSelectionInterfaceProps> = ({
 }) => {
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [keepProvisional, setKeepProvisional] = useState<boolean | null>(null);
+
+  // Effect to automatically set keepProvisional to false when bidder has changed
+  useEffect(() => {
+    if (currentPhase === "bidding2_complete") {
+      const bidderChanged =
+        trumpState.provisionalBidderId !== trumpState.finalDeclarerId;
+      if (bidderChanged) {
+        setKeepProvisional(false);
+      }
+    }
+  }, [
+    currentPhase,
+    trumpState.provisionalBidderId,
+    trumpState.finalDeclarerId,
+  ]);
 
   const handleCardClick = (card: CardModel) => {
     setSelectedCardId(selectedCardId === card.id ? null : card.id);
@@ -98,6 +113,7 @@ const TrumpSelectionInterface: React.FC<TrumpSelectionInterfaceProps> = ({
 
         <div className="flex justify-center">
           <button
+            type="button"
             className={`bg-blue-700 hover:bg-blue-800 text-white py-2 px-6 rounded-lg ${
               !selectedCardId ? "opacity-50 cursor-not-allowed" : ""
             }`}
@@ -113,11 +129,18 @@ const TrumpSelectionInterface: React.FC<TrumpSelectionInterfaceProps> = ({
 
   // Final trump selection (Round 2)
   if (currentPhase === "bidding2_complete") {
+    // Check if the current player (final declarer) is different from the provisional bidder
+    const bidderChanged =
+      trumpState.provisionalBidderId !== trumpState.finalDeclarerId;
+
     // If no new bidding happened in round 2 and the player is the same as Bidder 1,
     // they must keep the provisional trump
     const mustKeepProvisional =
       !newBiddingInRound2 &&
       trumpState.provisionalBidderId === trumpState.finalDeclarerId;
+
+    // If bidder changed, the new bidder must select a new trump
+    const mustSelectNewTrump = bidderChanged;
 
     return (
       <div className="trump-selection bg-gray-800 text-white rounded-lg shadow-md p-4 w-full max-w-lg mx-auto">
@@ -127,11 +150,14 @@ const TrumpSelectionInterface: React.FC<TrumpSelectionInterfaceProps> = ({
             {playerName},{" "}
             {mustKeepProvisional
               ? "you must keep the provisional trump (no new bidding in round 2)"
+              : mustSelectNewTrump
+              ? "as the new highest bidder, you must select a new trump"
               : "decide whether to keep or change the trump suit"}
           </p>
         </div>
 
-        {trumpState.provisionalTrumpSuit && (
+        {/* Only show provisional trump info if the bidder hasn't changed */}
+        {trumpState.provisionalTrumpSuit && !bidderChanged && (
           <div className="provisional-trump mb-6 p-3 bg-gray-700 rounded-lg text-center">
             <p className="text-gray-300 mb-2">Provisional Trump Suit:</p>
             <span
@@ -157,17 +183,70 @@ const TrumpSelectionInterface: React.FC<TrumpSelectionInterfaceProps> = ({
           // If must keep provisional trump, show only confirmation button
           <div className="flex justify-center">
             <button
+              type="button"
               className="bg-green-600 text-white py-2 px-6 rounded-lg"
               onClick={() => handleFinalizeTrump(true)}
             >
               Confirm Trump Selection
             </button>
           </div>
+        ) : mustSelectNewTrump ? (
+          // If bidder changed, force new trump selection (no choice to keep)
+          <div className="text-center mb-4">
+            <p className="text-amber-300 font-medium">
+              You must select a new trump card from your hand
+            </p>
+            {/* Automatically show card selection UI for new bidder */}
+            <div className="select-new-trump mt-4">
+              <div className="hand-cards grid grid-cols-4 gap-2 justify-items-center mb-4">
+                {playerHand.map((card) => (
+                  <div
+                    key={card.id}
+                    className={`cursor-pointer transform transition-transform ${
+                      selectedCardId === card.id
+                        ? "scale-110 -translate-y-2"
+                        : "hover:scale-105"
+                    }`}
+                    onClick={() => handleCardClick(card)}
+                  >
+                    <Card card={card} size="md" />
+                  </div>
+                ))}
+              </div>
+
+              {selectedCardId && (
+                <div className="selected-card-preview my-4 flex justify-center">
+                  <div className="text-center">
+                    <p className="mt-2 text-gray-300">
+                      New trump suit:
+                      <span className="font-bold ml-1 text-blue-300">
+                        {playerHand.find((c) => c.id === selectedCardId)?.suit}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-center mt-4">
+                <button
+                  type="button"
+                  className={`bg-blue-700 hover:bg-blue-800 text-white py-2 px-6 rounded-lg ${
+                    !selectedCardId ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                  onClick={() => handleFinalizeTrump(false, selectedCardId)}
+                  disabled={!selectedCardId}
+                >
+                  Confirm New Trump
+                </button>
+              </div>
+            </div>
+          </div>
         ) : (
           // Otherwise, show choices
           <>
             <div className="choices mb-4 flex justify-center gap-4">
               <button
+                type="button"
                 className={`py-2 px-4 rounded-lg ${
                   keepProvisional === true
                     ? "bg-green-700 text-white"
@@ -179,6 +258,7 @@ const TrumpSelectionInterface: React.FC<TrumpSelectionInterfaceProps> = ({
               </button>
 
               <button
+                type="button"
                 className={`py-2 px-4 rounded-lg ${
                   keepProvisional === false
                     ? "bg-purple-700 text-white"
@@ -232,6 +312,7 @@ const TrumpSelectionInterface: React.FC<TrumpSelectionInterfaceProps> = ({
 
             <div className="flex justify-center mt-4">
               <button
+                type="button"
                 className={`bg-blue-700 hover:bg-blue-800 text-white py-2 px-6 rounded-lg ${
                   keepProvisional === null ||
                   (keepProvisional === false && !selectedCardId)
