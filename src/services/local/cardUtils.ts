@@ -122,7 +122,7 @@ export const isValidPlay = (
         const hasTrump = finalTrumpSuit ? hand.some(c => c.suit === finalTrumpSuit) : false;
         const hasOnlyTrump = hasTrump && hand.every(c => !finalTrumpSuit || c.suit === finalTrumpSuit);
 
-        // --- NEW: Check if player MUST play trump --- 
+        // --- NEW: Check if player MUST play trump ---
         if (hasOnlyTrump && finalTrumpSuit) {
             // If player cannot follow suit and only has trump cards left, they MUST play trump.
             return card.suit === finalTrumpSuit;
@@ -204,7 +204,8 @@ export const determineTrickWinner = (
 
             // Scenario 2: Trump is NOT revealed
         } else {
-            // Trump suit is irrelevant. Only lead suit matters.
+            // Trump is NOT revealed
+            // First priority: Lead suit matters
             if (currentCard.suit === trick.leadSuit && winningCard.suit !== trick.leadSuit) {
                 // Current followed lead, winner didn't -> Current wins
                 winningCard = currentCard;
@@ -215,9 +216,18 @@ export const determineTrickWinner = (
                     winningCard = currentCard;
                     winningCardIndex = i;
                 }
+            } else if (winningCard.suit !== trick.leadSuit && currentCard.suit !== trick.leadSuit) {
+                // Neither followed lead -> Higher point value wins
+                if (currentCard.pointValue > winningCard.pointValue) {
+                    winningCard = currentCard;
+                    winningCardIndex = i;
+                } else if (currentCard.pointValue === winningCard.pointValue && currentCard.order > winningCard.order) {
+                    // If point values are equal, higher order wins
+                    winningCard = currentCard;
+                    winningCardIndex = i;
+                }
             }
             // If current didn't follow lead and winner did, winner remains winner.
-            // If both didn't follow lead, winner remains winner (first played wins).
         }
     }
 
@@ -241,4 +251,4 @@ export const getCardImagePath = (card: Card | null): string => {
     const suit = card.suit[0];
     const rank = card.rank === '10' ? 'T' : card.rank;
     return `/src/assets/cards/${rank}${suit}.svg`;
-}; 
+};

@@ -554,14 +554,18 @@ export const useGameStore = create<GameState & GameActions>()(
                     // The card to play IS the folded card
                     cardId = state.foldedCard.id;
                 }
-                // Case 2: Declarer has only one card left (any card) and trump is not revealed
+                // Case 2: Declarer has only one card left AND it's the folded card (which must be a trump card)
+                // This is a safety check in case the first condition didn't catch it
                 else if (
                     isDeclarer &&
                     currentPlayer.hand.length === 1 &&
                     !state.trumpState.trumpRevealed &&
-                    state.trumpState.finalTrumpSuit // Make sure we have a final trump suit
+                    state.trumpState.finalTrumpSuit && // Make sure we have a final trump suit
+                    state.foldedCard &&
+                    !state.trumpState.foldedCardReturned &&
+                    currentPlayer.hand[0].suit === state.trumpState.finalTrumpSuit // The last card is a trump card
                 ) {
-                    console.log("Declarer has only one card left. Automatically revealing trump.");
+                    console.log("Declarer's last card is a trump card. Automatically revealing trump.");
 
                     // Force reveal trump
                     state.trumpState.trumpRevealed = true;

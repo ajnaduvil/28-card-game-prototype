@@ -43,10 +43,6 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
   const [leadSuitCards, setLeadSuitCards] = useState<Record<string, boolean>>(
     {}
   );
-  const [showDeclarerRevealChoice, setShowDeclarerRevealChoice] =
-    useState<boolean>(false);
-  const [cardPendingRevealChoice, setCardPendingRevealChoice] =
-    useState<CardModel | null>(null);
   const [mustPlayFoldedCard, setMustPlayFoldedCard] = useState<boolean>(false);
   const [revealedFoldedCardId, setRevealedFoldedCardId] = useState<
     string | null
@@ -65,8 +61,6 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
       setCanAskTrump(false);
       setCanDeclarerRevealTrump(false);
       setLeadSuitCards({});
-      setShowDeclarerRevealChoice(false);
-      setCardPendingRevealChoice(null);
       return;
     }
 
@@ -154,13 +148,7 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
     setPlayableCards(playableMap);
     setLeadSuitCards(leadSuitMap);
 
-    if (
-      showDeclarerRevealChoice &&
-      (!playableMap[cardPendingRevealChoice?.id ?? ""] || !isCurrentPlayer)
-    ) {
-      setShowDeclarerRevealChoice(false);
-      setCardPendingRevealChoice(null);
-    }
+    // Removed declarer reveal choice check
   }, [
     hand,
     isCurrentPlayer,
@@ -168,8 +156,6 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
     trumpState,
     playerId,
     finalDeclarerId,
-    showDeclarerRevealChoice,
-    cardPendingRevealChoice,
     mustPlayFoldedCard,
     revealedFoldedCardId,
     foldedCard,
@@ -177,13 +163,6 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
 
   const handleCardClick = (card: CardModel) => {
     if (!isCurrentPlayer || !currentTrick || !trumpState) return;
-
-    if (cardPendingRevealChoice?.id === card.id) {
-      setShowDeclarerRevealChoice(false);
-      setCardPendingRevealChoice(null);
-      setSelectedCard(null);
-      return;
-    }
 
     if (mustPlayFoldedCard && revealedFoldedCardId) {
       if (card.id === revealedFoldedCardId) {
@@ -208,27 +187,12 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
         `handleCardClick: Card=${card.id}, isDeclarer=${isDeclarer}, trumpRevealed=${trumpState.trumpRevealed}, isTrumpCard=${isTrumpCard}, finalTrumpSuit=${trumpState.finalTrumpSuit}, isLeadSuitTrump=${isLeadSuitTrump}, isLeadingTrick=${isLeadingTrick}`
       );
 
-      if (
-        isDeclarer &&
-        !trumpState.trumpRevealed &&
-        isTrumpCard &&
-        (isLeadingTrick || !isLeadSuitTrump)
-      ) {
-        console.log(">>> Condition met: Showing declarer reveal choice.");
-        setSelectedCard(card);
-        setCardPendingRevealChoice(card);
-        setShowDeclarerRevealChoice(true);
-      } else {
-        console.log(">>> Condition NOT met: Playing card directly.");
-        playCardAction(playerId, card.id);
-        setSelectedCard(null);
-        setShowDeclarerRevealChoice(false);
-        setCardPendingRevealChoice(null);
-      }
+      // Always play the card directly without showing the reveal choice popup
+      console.log("Playing card directly.");
+      playCardAction(playerId, card.id);
+      setSelectedCard(null);
     } else {
       setSelectedCard(selectedCard?.id === card.id ? null : card);
-      setShowDeclarerRevealChoice(false);
-      setCardPendingRevealChoice(null);
     }
   };
 
@@ -248,18 +212,7 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
     }
   };
 
-  const handleDeclarerChoice = (reveal: boolean) => {
-    if (!cardPendingRevealChoice || !playerId) return;
-
-    if (reveal) {
-      declarerRevealTrumpAction(playerId);
-    }
-    playCardAction(playerId, cardPendingRevealChoice.id);
-
-    setShowDeclarerRevealChoice(false);
-    setCardPendingRevealChoice(null);
-    setSelectedCard(null);
-  };
+  // Removed handleDeclarerChoice function as it's no longer needed
 
   if (hand.length === 0) {
     return (
@@ -303,27 +256,7 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
           </div>
         )}
 
-      {showDeclarerRevealChoice && cardPendingRevealChoice && (
-        <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 z-20 flex flex-col items-center space-y-1 bg-gray-800 p-2 rounded shadow-lg">
-          <p className="text-white text-xs mb-1">Play Trump:</p>
-          <div className="flex space-x-2">
-            <button
-              type="button"
-              onClick={() => handleDeclarerChoice(false)}
-              className="px-2 py-1 bg-gray-600 hover:bg-gray-500 text-white text-xs rounded"
-            >
-              Keep Hidden
-            </button>
-            <button
-              type="button"
-              onClick={() => handleDeclarerChoice(true)}
-              className="px-2 py-1 bg-green-600 hover:bg-green-500 text-white text-xs rounded"
-            >
-              Reveal Trump
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Removed declarer reveal choice UI */}
 
       <div className="flex relative" style={{ height: "135px" }}>
         {hand.map((card, index) => {
