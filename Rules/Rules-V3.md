@@ -154,29 +154,29 @@ The dealer deals cards clockwise in two distinct batches, with a bidding round a
         *   **Compare Points to Bid:** Compare the Final Declarer's side's total points against the Final Contract bid.
             *   **Bid Made:** Declarer's points >= Final Contract.
             *   **Bid Failed:** Declarer's points < Final Contract.
-2.  **Award Game Points & Settle Stakes (Confirm House Rules):** Accumulate Game Points and exchange stakes based on the round outcome.
+2.  **Settle Stakes:** Exchange stakes based on the round outcome.
     *   **If Final Bid was from Round 1:**
         *   **Normal Bid (<=18 for 3p / <=20 for 4p):**
-            *   Bid Made: +1 Game Point for Declarer('s side).
+            *   Bid Made:
                 *   4p: Winning team collects 1 unit of stake from the losing team.
                 *   3p: Declarer collects 1 unit of stake *from each* opponent.
-            *   Bid Failed: -1 Game Point for Declarer('s side).
+            *   Bid Failed:
                 *   4p: Declarer's team pays 1 unit of stake to the winning team.
                 *   3p: Declarer pays 1 unit of stake *to each* opponent.
         *   **Honors Bid (>18 for 3p / >20 for 4p):**
-            *   Bid Made: +2 Game Points for Declarer('s side).
+            *   Bid Made:
                 *   4p: Winning team collects 2 units of stake from the losing team.
                 *   3p: Declarer collects 2 units of stake *from each* opponent.
-            *   Bid Failed: -2 Game Points for Declarer('s side).
+            *   Bid Failed:
                 *   4p: Declarer's team pays 2 units of stake to the winning team.
                 *   3p: Declarer pays 2 units of stake *to each* opponent.
     *   **If Final Bid was from Round 2 (Minimum Bid 24/22):**
         *   **4-Player Mode (Min Bid 24):**
-            *   Bid Made: +2 Game Points for Declarer's team. Winning team collects 2 units of stake from the losing team's shared pool.
-            *   Bid Failed: -3 Game Points for Declarer's team. Declarer's team pays 3 units of stake from their shared pool to the winning team.
+            *   Bid Made: Winning team collects 2 units of stake from the losing team's shared pool.
+            *   Bid Failed: Declarer's team pays 3 units of stake from their shared pool to the winning team.
         *   **3-Player Mode (Min Bid 22):**
-            *   Bid Made: +2 Game Points for Declarer. Declarer collects 2 units of stake *from each* opponent individually (total 4 units received).
-            *   Bid Failed: -4 Game Points for Declarer. Declarer pays 2 units of stake *to each* opponent individually (total 4 units paid).
+            *   Bid Made: Declarer collects 2 units of stake *from each* opponent individually (total 4 units received).
+            *   Bid Failed: Declarer pays 2 units of stake *to each* opponent individually (total 4 units paid).
     *   **Insufficient Stakes for Payment:** If a player/team owes more units of stake than they have remaining at the end of a round:
         *   They pay what they have (all their remaining stakes).
         *   The game ends immediately.
@@ -195,11 +195,10 @@ A full game continues until one team (in 4-player mode) or one player (in 3-play
 
 ### Alternative Winning Conditions (Optional)
 As an alternative to playing until elimination, players may agree beforehand to:
-- Play until a predetermined target number of Game Points (e.g., 6, 8, 10, 12) is reached
 - Play a fixed number of rounds
 - Play for a set amount of time
 
-In these cases, the final settlement of stakes occurs at the end based on the difference in accumulated stakes or overall Game Points, as agreed beforehand.
+In these cases, the final settlement occurs at the end based on the difference in accumulated stakes, as agreed beforehand.
 
 ## 8. Key Rule Summary & Unique Aspects
 
@@ -213,7 +212,7 @@ In these cases, the final settlement of stakes occurs at the end based on the di
 *   **Strategic Exception to Following Suit:** If a non-declarer leads with a card of the trump suit (without knowing it's trump since it hasn't been revealed yet), and the declarer has only the folded card of that suit, the declarer can choose to play any other card instead of following suit. This allows the declarer to protect their trump card and maintain the secrecy of the trump suit.
 *   **Original Bidder Leads:** The player to the dealer's left *always* leads the first trick.
 *   **Dealer Rotation:** After each round, the Original Starting Bidder becomes the dealer for the next round.
-*   **Tiered Scoring:** Game points awarded/lost depend on whether the final bid was made in Round 1 or Round 2 (or was Honors).
+*   **Tiered Scoring:** Stakes exchanged depend on whether the final bid was made in Round 1 or Round 2 (or was Honors), with higher stakes for Honors bids and Round 2 bids.
 *   **Concession Option:** The bid winner may concede if they believe they cannot make their bid. This option is available at any point - immediately after winning the bid in Phase 1, after winning the final bid in Phase 2, or during trick play (as long as they have not yet won enough points to meet their bid). Concession results in an automatic loss - the entire team loses in 4-player mode, and the individual Declarer loses in 3-player mode.
 *   **Full Game Definition:** A full game continues until one team (4p) or player (3p) loses all their stakes. If a player/team owes more stakes than they have remaining at the end of a round, they pay what they have and the game ends immediately.
 *   **Follow Suit:** To play a card of the same suit as the card led to the trick.
