@@ -574,26 +574,68 @@ const completeTrick = (
     // Calculate points in the trick
     const trickPoints = calculateCardPoints(completedTrick.cards);
 
+    // Create the final trick object with winner and points
+    const finalTrick = { ...completedTrick, winnerId: winnerPlayerId, points: trickPoints };
+
+    // Instead of immediately moving to the next trick, we'll set the game state to await confirmation
+    return {
+        ...gameState,
+        players: updatedPlayers,
+        currentTrick: null,
+        completedTrickAwaitingConfirmation: finalTrick,
+        currentPhase: 'trick_completed_awaiting_confirmation',
+    };
+};
+
+/**
+ * Confirm a completed trick and move to the next trick
+ */
+export const confirmTrick = (
+    gameState: GameState
+): GameState => {
+    // Validate we're in the right phase
+    if (gameState.currentPhase !== 'trick_completed_awaiting_confirmation') {
+        throw new Error('No trick awaiting confirmation');
+    }
+
+    if (!gameState.completedTrickAwaitingConfirmation) {
+        throw new Error('No trick awaiting confirmation');
+    }
+
+    const completedTrick = gameState.completedTrickAwaitingConfirmation;
+    const winnerPlayerId = completedTrick.winnerId;
+
+    if (!winnerPlayerId) {
+        throw new Error('Trick has no winner');
+    }
+
+    const winnerPlayerIndex = gameState.players.findIndex(p => p.id === winnerPlayerId);
+
+    if (winnerPlayerIndex === -1) {
+        throw new Error('Winner player not found');
+    }
+
     // Add the completed trick to the winner's tricks
-    const winnerPlayer = updatedPlayers[winnerPlayerIndex];
+    const winnerPlayer = gameState.players[winnerPlayerIndex];
     const updatedWinnerPlayer = {
         ...winnerPlayer,
-        tricksWon: [...winnerPlayer.tricksWon, { ...completedTrick, winnerId: winnerPlayerId, points: trickPoints }],
+        tricksWon: [...winnerPlayer.tricksWon, completedTrick],
     };
 
-    const finalPlayers = [...updatedPlayers];
-    finalPlayers[winnerPlayerIndex] = updatedWinnerPlayer;
+    const updatedPlayers = [...gameState.players];
+    updatedPlayers[winnerPlayerIndex] = updatedWinnerPlayer;
 
     // Check if all cards have been played
-    const allCardsPlayed = finalPlayers.every(p => p.hand.length === 0);
+    const allCardsPlayed = updatedPlayers.every(p => p.hand.length === 0);
 
     if (allCardsPlayed) {
         // Round is complete
         return {
             ...gameState,
-            players: finalPlayers,
+            players: updatedPlayers,
             currentTrick: null,
-            completedTricks: [...gameState.completedTricks, { ...completedTrick, winnerId: winnerPlayerId, points: trickPoints }],
+            completedTricks: [...gameState.completedTricks, completedTrick],
+            completedTrickAwaitingConfirmation: undefined,
             currentPhase: 'round_over',
         };
     }
@@ -601,7 +643,7 @@ const completeTrick = (
     // Start a new trick with the winner as leader
     return {
         ...gameState,
-        players: finalPlayers,
+        players: updatedPlayers,
         currentTrick: {
             cards: [],
             playedBy: [],
@@ -610,8 +652,9 @@ const completeTrick = (
             timestamp: Date.now(),
             points: 0,
         },
-        completedTricks: [...gameState.completedTricks, { ...completedTrick, winnerId: winnerPlayerId, points: trickPoints }],
+        completedTricks: [...gameState.completedTricks, completedTrick],
+        completedTrickAwaitingConfirmation: undefined,
         currentPlayerIndex: winnerPlayerIndex,
         currentPhase: 'playing_start_trick',
     };
-}; 
+};

@@ -15,6 +15,10 @@ interface GameBoardProps {
   trumpState: TrumpState;
   foldedCard?: CardModel | null;
   gameMode: "3p" | "4p";
+  onCardPlay?: (card: { id: string }) => void;
+  onRequestTrumpReveal?: () => boolean;
+  completedTrickAwaitingConfirmation?: Trick | null;
+  onConfirmTrick?: () => void;
 }
 
 const GameBoard: React.FC<GameBoardProps> = ({
@@ -26,6 +30,10 @@ const GameBoard: React.FC<GameBoardProps> = ({
   trumpState,
   foldedCard,
   gameMode,
+  onCardPlay,
+  onRequestTrumpReveal,
+  completedTrickAwaitingConfirmation,
+  onConfirmTrick,
 }) => {
   // State to store the trick we should display
   // const [displayTrick, setDisplayTrick] = useState<Trick | null>(null); // Removed state
@@ -90,9 +98,11 @@ const GameBoard: React.FC<GameBoardProps> = ({
       {/* Play area in the center */}
       <div className="absolute inset-0 flex items-center justify-center">
         <PlayArea
-          // currentTrick={displayTrick || currentTrick} // Use currentTrick directly
           currentTrick={currentTrick}
           playerPositions={playerPositions}
+          completedTrick={completedTrickAwaitingConfirmation}
+          onConfirmTrick={onConfirmTrick}
+          players={players}
         />
       </div>
 

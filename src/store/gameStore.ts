@@ -27,6 +27,7 @@ interface GameActions {
     // Card playing
     playCard: (playerId: string, cardId: string) => void;
     requestTrumpReveal: () => boolean;
+    confirmTrick: () => void; // Confirm a completed trick and move to next trick
 
     // Declarer explicitly reveals trump (usually when playing a trump card)
     declarerRevealTrump: (playerId: string) => boolean;
@@ -456,9 +457,14 @@ export const useGameStore = create<GameState & GameActions>()(
 
         // Play a card
         playCard: (playerId, cardId) => {
+            console.log(`playCard called: playerId=${playerId}, cardId=${cardId}`);
             let success = false;
 
             set(state => {
+                console.log(`Current phase: ${state.currentPhase}`);
+                console.log(`Current player index: ${state.currentPlayerIndex}`);
+                console.log(`Current trick:`, state.currentTrick);
+
                 // *** NEW: Check for forced play of last card (folded trump) ***
                 const currentPlayerIndex = state.currentPlayerIndex;
                 const currentPlayer = state.players[currentPlayerIndex];
@@ -542,50 +548,35 @@ export const useGameStore = create<GameState & GameActions>()(
                     // Determine trick winner
                     const winnerIndex = determineTrickWinner(state.currentTrick, state.trumpState);
                     const winnerPlayerId = state.currentTrick.playedBy[winnerIndex];
-                    const winnerPlayer = state.players.find(p => p.id === winnerPlayerId);
-
-                    if (!winnerPlayer) {
-                        console.error("Could not find winner player");
-                        return;
-                    }
+                    const winnerName = state.players.find(p => p.id === winnerPlayerId)?.name || 'Unknown';
 
                     // Calculate points in the trick
                     const trickPoints = calculateCardPoints(state.currentTrick.cards);
 
-                    // Add to completed tricks
+                    // Create the completed trick object
                     const completedTrick = {
                         ...state.currentTrick,
                         winnerId: winnerPlayerId,
                         points: trickPoints
                     };
 
-                    state.completedTricks.push(completedTrick);
-                    winnerPlayer.tricksWon.push(completedTrick);
+                    console.log(`Trick completed! Winner: ${winnerName}, Points: ${trickPoints}`);
+                    console.log('Setting game state to await confirmation');
+                    console.log('Completed trick:', completedTrick);
 
-                    // Check if all cards have been played
-                    const allCardsPlayed = state.players.every(p => p.hand.length === 0);
+                    // Instead of immediately moving to the next trick, set the game state to await confirmation
+                    state.completedTrickAwaitingConfirmation = completedTrick;
+                    state.currentTrick = null;
+                    state.currentPhase = 'trick_completed_awaiting_confirmation';
 
-                    if (allCardsPlayed) {
-                        // Round is complete
-                        state.currentPhase = 'round_over';
-                        state.currentTrick = null;
+                    // Log the state after changes
+                    console.log('State after trick completion:');
+                    console.log('- currentPhase:', state.currentPhase);
+                    console.log('- completedTrickAwaitingConfirmation:', state.completedTrickAwaitingConfirmation);
+                    console.log('- currentTrick:', state.currentTrick);
 
-                        // Score calculation would go here
-                    } else {
-                        // Start a new trick with the winner as leader
-                        state.currentTrick = {
-                            cards: [],
-                            playedBy: [],
-                            leaderId: winnerPlayerId,
-                            leadSuit: 'Hearts', // Placeholder
-                            timestamp: Date.now(),
-                            points: 0,
-                            playerWhoAskedTrump: null // Reset asker for the new trick
-                        };
-
-                        state.currentPhase = 'playing_start_trick';
-                        state.currentPlayerIndex = state.players.findIndex(p => p.id === winnerPlayerId);
-                    }
+                    // Set a timeout to auto-confirm after 3 seconds
+                    // Note: This is handled in the UI component, not here
                 } else {
                     // Move to next player
                     state.currentPlayerIndex = (state.currentPlayerIndex + 1) % state.players.length;
@@ -650,6 +641,76 @@ export const useGameStore = create<GameState & GameActions>()(
                 }
             });
             return success;
+        },
+
+        // Confirm a completed trick and move to the next trick
+        confirmTrick: () => {
+            set(state => {
+                // Validate we're in the right phase
+                if (state.currentPhase !== 'trick_completed_awaiting_confirmation') {
+                    console.error("No trick awaiting confirmation");
+                    return;
+                }
+
+                if (!state.completedTrickAwaitingConfirmation) {
+                    console.error("No trick awaiting confirmation");
+                    return;
+                }
+
+                console.log("Confirming trick in store:", state.completedTrickAwaitingConfirmation);
+
+                const completedTrick = state.completedTrickAwaitingConfirmation;
+                const winnerPlayerId = completedTrick.winnerId;
+
+                if (!winnerPlayerId) {
+                    console.error("Trick has no winner");
+                    return;
+                }
+
+                const winnerPlayerIndex = state.players.findIndex(p => p.id === winnerPlayerId);
+
+                if (winnerPlayerIndex === -1) {
+                    console.error("Winner player not found");
+                    return;
+                }
+
+                // Add the completed trick to the winner's tricks
+                const winnerPlayer = state.players[winnerPlayerIndex];
+                winnerPlayer.tricksWon.push(completedTrick);
+
+                // Add to completed tricks
+                state.completedTricks.push(completedTrick);
+
+                // Check if all cards have been played
+                const allCardsPlayed = state.players.every(p => p.hand.length === 0);
+
+                if (allCardsPlayed) {
+                    // Round is complete
+                    state.currentPhase = 'round_over';
+                    state.currentTrick = null;
+                    state.completedTrickAwaitingConfirmation = undefined;
+
+                    // Score calculation would go here
+                    console.log("Round over, all cards played");
+                } else {
+                    // Start a new trick with the winner as leader
+                    state.currentTrick = {
+                        cards: [],
+                        playedBy: [],
+                        leaderId: winnerPlayerId,
+                        leadSuit: 'Hearts', // Placeholder
+                        timestamp: Date.now(),
+                        points: 0,
+                        playerWhoAskedTrump: null // Reset asker for the new trick
+                    };
+
+                    state.currentPhase = 'playing_start_trick';
+                    state.currentPlayerIndex = winnerPlayerIndex;
+                    state.completedTrickAwaitingConfirmation = undefined;
+
+                    console.log("Starting new trick with leader:", winnerPlayer.name);
+                }
+            });
         },
 
         // Request trump reveal (by opponent)

@@ -16,6 +16,7 @@ export type GamePhase =
     'trump_selection_final' | // Final declarer selecting final trump
     'playing_start_trick' | // Start of a trick
     'playing_in_progress' | // During a trick
+    'trick_completed_awaiting_confirmation' | // Trick is complete but waiting for confirmation
     'round_over' |
     'game_over';
 
@@ -83,7 +84,7 @@ export interface GameState {
 
     // Bidding state
     bids1: Bid[];             // First round bids
-    bids2: Bid[];             // Second round bids  
+    bids2: Bid[];             // Second round bids
     highestBid1?: Bid;        // Highest bid from round 1
     highestBid2?: Bid;        // Highest bid from round 2
     finalBid?: Bid;           // Final winning bid
@@ -94,6 +95,7 @@ export interface GameState {
     // Playing state
     currentTrick: Trick | null; // Current trick in progress (can be null between tricks)
     completedTricks: Trick[]; // Completed tricks this round
+    completedTrickAwaitingConfirmation?: Trick; // Completed trick waiting for confirmation
 
     // Scoring
     roundScores: RoundScore[]; // Scores for completed rounds
@@ -105,4 +107,4 @@ export interface GameState {
     // Metadata
     isOnline: boolean;        // Whether this is an online game (Phase 2)
     status: 'waiting' | 'active' | 'completed' | 'abandoned'; // Game status
-} 
+}

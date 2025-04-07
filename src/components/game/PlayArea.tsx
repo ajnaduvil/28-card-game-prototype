@@ -1,15 +1,22 @@
 import React from "react";
 import Card from "./Card";
 import { Trick } from "../../models/game";
+import TrickConfirmation from "./TrickConfirmation";
 
 interface PlayAreaProps {
   currentTrick: Trick | null;
   playerPositions?: Record<string, string>; // Maps playerId to position (bottom, top, left, right, etc.)
+  completedTrick?: Trick | null; // Completed trick awaiting confirmation
+  onConfirmTrick?: () => void; // Callback to confirm the trick
+  players?: Array<{ id: string; name: string }>; // Players for getting winner name
 }
 
 const PlayArea: React.FC<PlayAreaProps> = ({
   currentTrick,
   playerPositions = {},
+  completedTrick = null,
+  onConfirmTrick,
+  players = [],
 }) => {
   if (!currentTrick || currentTrick.cards.length === 0) {
     return (
@@ -72,6 +79,61 @@ const PlayArea: React.FC<PlayAreaProps> = ({
 
     return { x, y };
   };
+
+  // If we have a completed trick awaiting confirmation, show the completed trick with confirmation UI
+  if (completedTrick && onConfirmTrick) {
+    // Find the winner name
+    const winnerName = completedTrick.winnerId
+      ? players.find((p) => p.id === completedTrick.winnerId)?.name || "Unknown"
+      : "Unknown";
+
+    // Calculate total points in the completed trick
+    const trickPoints = completedTrick.cards.reduce(
+      (sum, card) => sum + card.pointValue,
+      0
+    );
+
+    console.log("Rendering completed trick awaiting confirmation:", {
+      completedTrick,
+      winnerName,
+      trickPoints,
+    });
+
+    return (
+      <div className="play-area w-80 h-80 rounded-full bg-green-900 border-4 border-green-700 shadow-inner relative">
+        {/* Display the completed trick cards */}
+        {completedTrick.cards.map((card, index) => {
+          // Position cards in a circle around the center
+          const angle =
+            index * (360 / completedTrick.cards.length) * (Math.PI / 180);
+          const radius = 30; // Smaller radius to keep cards closer to center
+          const x = Math.cos(angle) * radius;
+          const y = Math.sin(angle) * radius;
+
+          return (
+            <div
+              key={`${card.id}-${index}`}
+              className="absolute transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300"
+              style={{
+                left: `calc(50% + ${x}px)`,
+                top: `calc(50% + ${y}px)`,
+                zIndex: index + 1,
+              }}
+            >
+              <Card card={card} size="sm" showPointValue={true} />
+            </div>
+          );
+        })}
+
+        {/* Overlay the trick confirmation UI */}
+        <TrickConfirmation
+          trick={completedTrick}
+          onConfirm={onConfirmTrick}
+          winnerName={winnerName}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="play-area w-80 h-80 rounded-full bg-green-900 border-4 border-green-700 shadow-inner relative">
