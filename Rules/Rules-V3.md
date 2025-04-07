@@ -20,26 +20,30 @@
 *   **Card Rank (Highest to Lowest within a suit):**
     *   **4-Player:** J > 9 > A > 10 > K > Q > 8 > 7
     *   **3-Player:** J > 9 > A > 10 > K > Q
-*   **Objective:** For the bidding team (4p) or the lone bidder (3p) to win tricks whose cumulative card point value is equal to or greater than their final contract bid. The opposing players aim to prevent this.
-*   **Trump Suit:** One suit is designated as the "Trump" suit for each round by the final bidder. This suit is superior to all other suits ("plain suits").
-    *   **Hidden Trump:** The trump suit is chosen secretly by the final bidder and is not announced initially.
+*   **Round Objective:** For each round of play, the objective for the bidding team (4p) or the lone bidder (3p) is to win tricks whose cumulative card point value is equal to or greater than their final contract bid. The opposing players aim to prevent this by capturing valuable point cards in their own tricks. Each round is scored independently based on whether this objective is met.
+*   **Trump Suit:** One suit is designated as the "Trump" suit for each round by the final bidder.
+    *   **Hidden Trump:** The trump suit is chosen secretly by the final bidder and is not announced initially. Until the trump suit is revealed, cards of the trump suit are treated exactly the same as any plain suit card with no special superiority.
+    *   **Trump Superiority:** The trump suit becomes superior to all other suits ("plain suits") ONLY AFTER it has been revealed during play. Once revealed, any trump card beats any card of a plain suit.
     *   **Folded Trump Indicator:** The final bidder physically places one card of the chosen trump suit face-down, separate from their active hand, to lock in the choice. This card is revealed only under specific conditions during play.
 *   **Trick:** A single round of play where each player plays one card.
-    *   **Winning a Trick:** The trick is won by the player who played the highest-ranking trump card. If no trump cards were played in the trick, it is won by the player who played the highest-ranking card of the suit that was led.
+    *   **Winning a Trick:** If the trump suit has been revealed, the trick is won by the player who played the highest-ranking trump card. If the trump suit has not been revealed or no trump cards were played in the trick, it is won by the player who played the highest-ranking card of the suit that was led.
 *   **Partnerships & Alliances:**
-    *   **4-Player:** Two fixed partnerships. Partners sit opposite each other and combine their scores.
-    *   **3-Player:** Players play individually. However, for the duration of the play phase of a round, the two players who did *not* win the final bid form a temporary alliance, playing against the lone Final Declarer. Their captured points are combined against the Declarer.
-*   **Original Starting Bidder:** The player seated immediately to the dealer's right. This position is important for leading the first trick.
+    *   **4-Player:** Two fixed partnerships. Partners sit opposite each other in a square arrangement and combine their scores.
+    *   **3-Player:** Players sit in a triangular arrangement and play individually. However, for the duration of the play phase of a round, the two players who did *not* win the final bid form a temporary alliance, playing against the lone Final Declarer. Their captured points are combined against the Declarer.
+*   **Round:** A complete cycle of gameplay consisting of dealing, two bidding phases, playing all 8 tricks, and scoring. Each round has its own objective and is scored independently. A full game consists of multiple rounds.
+*   **Original Starting Bidder:** The player seated immediately to the dealer's left. This position is important for leading the first trick.
 *   **Stakes:** Units of money or points that players exchange after each round based on the outcome.
     *   **4-Player:** Each team starts with an agreed-upon amount of stakes. A full game continues until one team loses all their stakes.
     *   **3-Player:** Each player starts with an agreed-upon amount of stakes. A full game continues until one player loses all their stakes.
 
 ## 3. Game Setup
 
-1.  **Choose Dealer:** Randomly for the first round (e.g., high card draw). For subsequent rounds, the Original Starting Bidder from the previous round becomes the next dealer.
+1.  **Choose Dealer:** For the very first round of a game, the dealer is chosen randomly (e.g., by high card draw or any other random method). For all subsequent rounds, the Original Starting Bidder from the previous round becomes the next dealer.
 2.  **Select Deck:** Use the 32-card deck for 4 players or the 24-card deck for 3 players.
 3.  **Shuffle:** The dealer shuffles the appropriate deck thoroughly.
-4.  **Seating:** In 4-player mode, partners sit opposite each other.
+4.  **Seating:**
+    *   **4-Player Mode:** Partners sit opposite each other, forming a square arrangement.
+    *   **3-Player Mode:** Players sit in a triangular arrangement, equidistant from each other.
 5.  **Starting Stakes:** Before the first round, agree on a starting amount of money or coins to be used as stakes. This is essential as the game continues until one team or player loses all their stakes.
     *   **4-Player:** Each *team* starts with a fixed, shared pool of stakes (e.g., 20 units). Stakes are exchanged between the two teams.
     *   **3-Player:** Each *player* starts with their own fixed, individual amount of stakes (e.g., 20 units). Stakes are exchanged between the Declarer and each opponent individually.
@@ -57,12 +61,13 @@ The dealer deals cards clockwise in two distinct batches, with a bidding round a
 ### Phase 1: First Bidding Round & Provisional Trump Selection
 
 1.  **Eligibility:** All players participate.
-2.  **Starting Bidder:** The **Original Starting Bidder** (player to dealer's right) begins the auction.
+2.  **Starting Bidder:** The **Original Starting Bidder** (player to dealer's left) begins the auction. The Starting Bidder MUST make at least the minimum bid and cannot pass on their first turn.
 3.  **Bidding:** Proceeds clockwise. Each player may:
     *   Make a numerical bid higher than the current highest bid. The minimum opening bid is 14 for 4-player mode and 12 for 3-player mode.
     *   Declare "Honors". An "Honors" bid in this round is any bid *exceeding* 18 (3-Player) or *exceeding* 20 (4-Player). This type of bid carries different scoring implications (see Section 6).
     *   Pass. A player who passes may still bid again later in the same round if the bidding continues and another player makes a higher bid. Bidding in Round 1 ends only when all players pass consecutively on the current highest bid.
-4.  **Round 1 Winner (Bidder 1):** The player who makes the highest unchallenged bid (which could be a Normal bid or an Honors bid) in this round. Let their bid be Bid 1.
+4.  **Round 1 Winner (Bidder 1):** The player who makes the highest unchallenged bid (which could be a Normal bid or an Honors bid) in this round is referred to as "Bidder 1" throughout these rules. Let their bid be Bid 1.
+    *   **Option to Concede:** After examining their initial 4 cards, Bidder 1 has the option to concede immediately if they feel they cannot make their bid. If they concede, they automatically lose the round, stakes are settled according to the scoring rules for a failed bid, and players proceed to the next round with a new dealer.
 5.  **Provisional Trump Selection & Folding:**
     *   Bidder 1 examines their initial 4 cards.
     *   They secretly choose a provisional trump suit (Trump 1).
@@ -82,6 +87,7 @@ The dealer deals cards clockwise in two distinct batches, with a bidding round a
 4.  **Bidding:** Proceeds clockwise. Players can bid higher than the current highest bid (from either round), declare Honors, or pass. Bidding in Round 2 ends only when all players pass consecutively on the current highest bid, just as in Round 1.
 5.  **Determining Final Declarer & Final Trump:**
     *   The player with the highest unchallenged bid across both rounds (or the final Honors declaration) is the **Final Declarer**. Their bid is the **Final Contract**.
+    *   **Option to Concede:** After examining their full hand, the Final Declarer has the option to concede immediately if they feel they cannot make their bid. If they concede, they automatically lose the round, stakes are settled according to the scoring rules for a failed bid, and players proceed to the next round with a new dealer.
     *   **Case 1: Final Declarer is DIFFERENT from Bidder 1:**
         *   Bidder 1 picks up their originally folded card, returning it to their active hand (now holds 8 cards).
         *   The Final Declarer (now Bidder 2) examines their full 8-card hand.
@@ -97,7 +103,7 @@ The dealer deals cards clockwise in two distinct batches, with a bidding round a
 
 ### Phase 3: Playing the Tricks (8 Tricks Total)
 
-1.  **Leading the First Trick:** The **Original Starting Bidder** (player to dealer's right) **always leads the first trick**, regardless of who the Final Declarer is. They play from their active hand (8 cards, unless they are the Declarer, then 7).
+1.  **Leading the First Trick:** The **Original Starting Bidder** (player to dealer's left) **always leads the first trick**, regardless of who the Final Declarer is. They play from their active hand (8 cards, unless they are the Declarer, then 7).
 2.  **Following Suit:** Play proceeds clockwise. Players must play a card of the suit led, if they possess one ("follow suit").
 3.  **Unable to Follow Suit & Trump Reveal:**
     *   **If a Non-Declarer Cannot Follow Suit:** Before playing, they may ask the Final Declarer, "Trump?".
@@ -122,7 +128,7 @@ The dealer deals cards clockwise in two distinct batches, with a bidding round a
 5.  **Winning a Trick:** The highest trump card played wins the trick *if the trump suit has been revealed*. If no trump cards are played, or if the trump suit is not revealed, the highest card of the suit led wins.
 6.  **Collecting Tricks:** The winner of the trick collects the cards played (3 or 4 cards) and places them face-down.
 7.  **Leading Subsequent Tricks (Tricks 2-8):** The **winner of the previous trick** leads the next trick.
-8.  **Conceding the Round:** If the Final Declarer believes they cannot win enough points to meet their bid, they may concede the round. This option is only available when the Declarer has not yet won enough points to meet their bid. When conceding:
+8.  **Conceding the Round:** If the Final Declarer believes they cannot win enough points to meet their bid, they may concede the round. This option is available at any point during the game to the bid winner - immediately after winning the bid in Phase 1, after winning the final bid in Phase 2, or during trick play (as long as they have not yet won enough points to meet their bid). When conceding:
     *   The Declarer announces their concession.
     *   Play immediately stops.
     *   The round is automatically scored as a failed bid:
@@ -191,11 +197,11 @@ In these cases, the final settlement of stakes occurs at the end based on the di
 *   **Two Bidding Rounds:** An initial round after 4 cards, a second round after 8 cards with higher minimums. The winner of the first bidding round (Bidder 1) starts the bidding in Round 2.
 *   **Two-Stage Trump Selection:** Provisional trump chosen after Round 1, final trump chosen after Round 2 (with option for Bidder 1=Bidder 2 to revise).
 *   **Folded Trump Indicator:** Physical card set aside face-down to lock in the secret trump choice.
-*   **Hidden Trump Reveal:** Trump suit is only revealed when requested by a player unable to follow suit, or when the Declarer is forced to play or declare it.
-*   **Original Bidder Leads:** The player to the dealer's right *always* leads the first trick.
+*   **Hidden Trump Reveal:** Trump suit is only revealed when requested by a player unable to follow suit, or when the Declarer chooses to reveal it. Until revealed, trump cards have no special superiority and are treated as plain suit cards.
+*   **Original Bidder Leads:** The player to the dealer's left *always* leads the first trick.
 *   **Dealer Rotation:** After each round, the Original Starting Bidder becomes the dealer for the next round.
 *   **Tiered Scoring:** Game points awarded/lost depend on whether the final bid was made in Round 1 or Round 2 (or was Honors).
-*   **Concession Option:** The Declarer may concede if they believe they cannot win enough points to meet their bid. This option is only available when the Declarer has not yet won enough points to meet their bid. Concession results in an automatic loss - the entire team loses in 4-player mode, and the individual Declarer loses in 3-player mode.
+*   **Concession Option:** The bid winner may concede if they believe they cannot make their bid. This option is available at any point - immediately after winning the bid in Phase 1, after winning the final bid in Phase 2, or during trick play (as long as they have not yet won enough points to meet their bid). Concession results in an automatic loss - the entire team loses in 4-player mode, and the individual Declarer loses in 3-player mode.
 *   **Full Game Definition:** A full game continues until one team (4p) or player (3p) loses all their stakes.
 *   **Follow Suit:** To play a card of the same suit as the card led to the trick.
 *   **Honors:** A bid made during the first bidding round that *exceeds* 18 (3-Player) or *exceeds* 20 (4-Player), carrying specific scoring implications if it becomes the final contract.
@@ -204,12 +210,13 @@ In these cases, the final settlement of stakes occurs at the end based on the di
 ## 9. Glossary
 
 *   **Bid:** A declaration during the auction phase to win a certain number of card points.
-*   **Concede:** A decision by the Declarer to surrender the round before all tricks are played when they believe they cannot win enough points to meet their bid. This option is only available when the Declarer has not yet won enough points to meet their bid. When a Declarer concedes, the round is automatically lost:
+*   **Bidder 1:** The player who makes the highest unchallenged bid in the first bidding round. This player selects the provisional trump suit and folds one card of that suit as the trump indicator.
+*   **Concede:** A decision by the bid winner to surrender the round when they believe they cannot make their bid. This option is available at any point - immediately after winning the bid in Phase 1, after winning the final bid in Phase 2, or during trick play (as long as they have not yet won enough points to meet their bid). When a bid winner concedes, the round is automatically lost:
     *   **4-Player Mode:** The Declarer's entire team loses the round.
     *   **3-Player Mode:** The individual Declarer loses the round.
     The bid is considered failed, stakes are settled accordingly, and players proceed to the next round.
 *   **Contract:** The final, highest bid made in a round, which the Declarer must achieve.
-*   **Dealer:** The player responsible for shuffling and dealing the cards for a round. For the first round, the dealer is chosen randomly. For subsequent rounds, the Original Starting Bidder from the previous round becomes the dealer.
+*   **Dealer:** The player responsible for shuffling and dealing the cards for a round. For the very first round of a game, the dealer is chosen randomly (e.g., by high card draw). For all subsequent rounds, the Original Starting Bidder from the previous round becomes the dealer.
 *   **Declarer:** The player who makes the final, highest bid (the Final Declarer).
 *   **Defender:** Any player who is not the Declarer (in 3p) or not on the Declarer's team (in 4p).
 *   **Folded Trump Indicator:** The single card placed face-down by the Declarer representing the secret trump suit.
@@ -217,10 +224,10 @@ In these cases, the final settlement of stakes occurs at the end based on the di
 *   **Full Game:** A complete game that continues until one team (in 4-player mode) or one player (in 3-player mode) loses all their stakes.
 *   **Honors:** A bid made during the first bidding round that *exceeds* 18 (3-Player) or *exceeds* 20 (4-Player), carrying specific scoring implications if it becomes the final contract.
 *   **Lead:** To play the first card to a trick.
-*   **Original Starting Bidder:** The player to the dealer's right, who starts the bidding and leads the first trick. This player becomes the dealer for the next round.
+*   **Original Starting Bidder:** The player to the dealer's left, who starts the bidding and leads the first trick. This player becomes the dealer for the next round.
 *   **Plain Suit:** Any suit that is not the trump suit.
 *   **Round:** A complete cycle of gameplay for one deal, consisting of dealing, two bidding phases, playing all 8 tricks, and scoring for that deal.
 *   **Ruff / Trump (verb):** To play a trump card on a trick when a plain suit was led and the player cannot follow suit.
 *   **Stakes:** The units of money or points that players exchange based on the outcome of each round. A full game continues until one team or player loses all their stakes.
 *   **Trick:** One instance of play where each player plays a single card. A full round consists of 8 tricks.
-*   **Trump Suit:** The suit chosen by the Declarer that outranks all other suits for the round.
+*   **Trump Suit:** The suit chosen by the Declarer. Once revealed, it outranks all other suits for the round. Until revealed, cards of the trump suit have no special superiority and are treated exactly the same as any plain suit card.
