@@ -317,7 +317,7 @@ const GamePlay = () => {
       {/* Trick Confirmation */}
       {currentPhase === "trick_completed_awaiting_confirmation" &&
         completedTrickAwaitingConfirmation && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50 p-4">
             <StandaloneTrickConfirmation
               trick={completedTrickAwaitingConfirmation}
               onConfirm={handleConfirmTrick}

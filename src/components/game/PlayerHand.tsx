@@ -349,7 +349,7 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
                   <div className="absolute -inset-1 bg-purple-500 opacity-50 rounded-lg animate-pulse"></div>
                 )}
                 {isPlayable && !isFoldedCard && (
-                  <div className="absolute -inset-0.5 bg-green-500 opacity-20 rounded-lg"></div>
+                  <div className="absolute -inset-0.5 bg-green-500 opacity-20 rounded-lg animate-pulse"></div>
                 )}
                 <Card
                   card={hideCards ? undefined : card}

@@ -34,43 +34,45 @@ const StandaloneTrickConfirmation: React.FC<
   // Component is now working correctly
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-green-800 border-t-4 border-yellow-400 p-4 shadow-lg z-50">
-      <div className="max-w-3xl mx-auto flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="bg-yellow-500 text-green-900 font-bold px-3 py-1 rounded-full">
-            Trick Complete!
-          </div>
+    <div className="bg-slate-900 text-slate-100 rounded-xl shadow-xl p-6 w-full max-w-2xl mx-auto border border-indigo-600 overflow-hidden">
+      <div className="text-center mb-4">
+        <h3 className="text-xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+          Trick Complete
+        </h3>
+        <p className="text-slate-300 text-sm mt-1">
+          <span className="font-medium text-indigo-300">{winnerName}</span> wins
+          with
+          <span className="font-medium text-indigo-300 ml-1">
+            {trick.points}
+          </span>{" "}
+          points
+        </p>
+      </div>
 
-          <div className="text-white">
-            <span className="text-yellow-300 font-bold">{winnerName}</span> wins
-            with
-            <span className="text-yellow-300 font-bold ml-1">
-              {trick.points}
-            </span>{" "}
-            points
-          </div>
+      <div className="bg-slate-800 rounded-lg p-4 mb-4 border border-slate-700">
+        <p className="text-xs text-slate-400 mb-2 text-center">
+          Cards played in this trick:
+        </p>
+        <div className="flex justify-center gap-2">
+          {trick.cards.map((card) => (
+            <div
+              key={card.id}
+              className="transform hover:-translate-y-2 transition-all duration-200"
+            >
+              <Card card={card} size="sm" showPointValue={false} />
+            </div>
+          ))}
         </div>
+      </div>
 
-        <div className="flex items-center gap-4">
-          <div className="flex gap-1">
-            {trick.cards.map((card) => (
-              <div
-                key={card.id}
-                className="transform hover:translate-y-[-10px] transition-transform"
-              >
-                <Card card={card} size="sm" showPointValue={true} />
-              </div>
-            ))}
-          </div>
-
-          <button
-            type="button"
-            onClick={onConfirm}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors"
-          >
-            Continue ({timeLeft}s)
-          </button>
-        </div>
+      <div className="flex justify-center">
+        <button
+          type="button"
+          onClick={onConfirm}
+          className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white py-2 px-5 rounded-lg text-sm font-medium shadow-lg transition-all duration-200"
+        >
+          Continue ({timeLeft}s)
+        </button>
       </div>
     </div>
   );

@@ -67,7 +67,11 @@ const Card: React.FC<CardProps> = ({
     shadow-lg
     transition-all duration-300
     ${isSelected ? "transform -translate-y-6 ring-2 ring-indigo-500" : ""}
-    ${isPlayable ? "cursor-pointer hover:-translate-y-3 hover:shadow-xl" : ""}
+    ${
+      isPlayable
+        ? "cursor-pointer hover:-translate-y-4 hover:rotate-1 hover:scale-110 playable-card-hover"
+        : ""
+    }
     ${
       !isPlayable && isSelectable
         ? "opacity-70 hover:opacity-90 hover:-translate-y-1 cursor-pointer"
