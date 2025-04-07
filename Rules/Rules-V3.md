@@ -68,7 +68,8 @@ The dealer deals cards clockwise in two distinct batches, with a bidding round a
 2.  **Starting Bidder for Phase 1:** The **Original Starting Bidder** (player to dealer's left) begins the auction. This Starting Bidder MUST make at least the minimum bid and cannot pass on their first turn.
 3.  **Bidding:** Proceeds clockwise. Each player may:
     *   Make a numerical bid higher than the current highest bid. The minimum opening bid is 14 for 4-player mode and 12 for 3-player mode.
-    *   Declare "Honors". An "Honors" bid in this round is any bid *exceeding* 18 (3-Player) or *exceeding* 20 (4-Player). This type of bid carries different scoring implications (see Section 6).
+        *   **Normal Bid:** Any bid in the first bidding round that is equal to or less than 18 (3-Player) or equal to or less than 20 (4-Player). Normal bids have standard scoring implications (see Section 6): if made: +1 unit of stake; if failed: -1 unit of stake.
+        *   **Honors Bid:** Any bid in the first bidding round that exceeds 18 (3-Player) or exceeds 20 (4-Player) is automatically considered an "Honors" bid. Players do not make a separate declaration - the bid value itself determines whether it's a Normal or Honors bid. Honors bids carry higher scoring implications (see Section 6): if made: +2 units of stake; if failed: -2 units of stake. Honors bids are ONLY available in this first bidding round (Phase 1), not in Phase 2.
     *   Pass. A player who passes may still bid again later in the same round if the bidding continues and another player makes a higher bid. Bidding in Round 1 ends only when all players pass consecutively on the current highest bid.
 4.  **Round 1 Winner (Bidder 1):** The player who makes the highest unchallenged bid (which could be a Normal bid or an Honors bid) in this round is referred to as "Bidder 1" throughout these rules. Let their bid be Bid 1.
     *   **Option to Concede:** After examining their initial 4 cards, Bidder 1 has the option to concede immediately if they feel they cannot make their bid. If they concede, they automatically lose the round, stakes are settled according to the scoring rules for a failed bid, and players proceed to the next round with a new dealer.
@@ -88,7 +89,7 @@ The dealer deals cards clockwise in two distinct batches, with a bidding round a
     *   **3-Player:** 22
     *   If Bid 1 (from Round 1) is less than these minimums, bidding *must* start at 24/22 or higher.
     *   If Bid 1 is already equal to or greater than these minimums, bidding *must* start higher than Bid 1.
-4.  **Bidding:** Proceeds clockwise. Players can bid higher than the current highest bid (from either round), declare Honors, or pass. Bidding in Round 2 ends only when all players pass consecutively on the current highest bid, just as in Round 1.
+4.  **Bidding:** Proceeds clockwise. Players can bid higher than the current highest bid (from either round) or pass. Note that the "Honors" threshold and scoring only apply to bids made in Phase 1 - all bids in Phase 2 follow the Phase 2 scoring rules regardless of their value. Bidding in Round 2 ends only when all players pass consecutively on the current highest bid, just as in Round 1.
 5.  **Determining Final Declarer & Final Trump:**
     *   The player with the highest unchallenged bid across both rounds (or the final Honors declaration) is the **Final Declarer**. Their bid is the **Final Contract**.
     *   **Option to Concede:** After examining their full hand, the Final Declarer has the option to concede immediately if they feel they cannot make their bid. If they concede, they automatically lose the round, stakes are settled according to the scoring rules for a failed bid, and players proceed to the next round with a new dealer.
@@ -218,11 +219,13 @@ In these cases, the final settlement occurs at the end based on the difference i
 *   **Original Bidder Leads:** The Original Starting Bidder (player to dealer's left) *always* leads the first trick, regardless of who won the final bid.
 *   **Bidding Starters:** The Original Starting Bidder begins Phase 1 bidding and MUST make at least the minimum bid (cannot pass). The winner of Phase 1 (Bidder 1) begins Phase 2 bidding but CAN choose to pass. These may or may not be the same player.
 *   **Dealer Rotation:** After each round, the Original Starting Bidder becomes the dealer for the next round.
-*   **Tiered Scoring:** Stakes exchanged depend on whether the final bid was made in Round 1 or Round 2. The special Honors scoring applies ONLY if the final bid was established during Round 1. All bids established in Round 2 follow the Round 2 scoring rules regardless of the bid value.
+*   **Tiered Scoring:** Stakes exchanged depend on whether the final bid was made in Round 1 or Round 2. In Round 1, bids exceeding 18 (3p) or 20 (4p) are automatically considered Honors bids with special scoring. The Honors scoring applies ONLY if the final bid was established during Round 1. All bids established in Round 2 follow the Round 2 scoring rules regardless of the bid value.
 *   **Concession Option:** The bid winner may concede if they believe they cannot make their bid. This option is available at any point - immediately after winning the bid in Phase 1, after winning the final bid in Phase 2, or during trick play (as long as they have not yet won enough points to meet their bid). Concession results in an automatic loss - the entire team loses in 4-player mode, and the individual Declarer loses in 3-player mode.
 *   **Full Game Definition:** A full game continues until one team (4p) or player (3p) loses all their stakes. If a player/team owes more stakes than they have remaining at the end of a round, they pay what they have and the game ends immediately.
 *   **Follow Suit:** To play a card of the same suit as the card led to the trick.
-*   **Honors:** A bid made during the first bidding round that *exceeds* 18 (3-Player) or *exceeds* 20 (4-Player), carrying specific scoring implications if it becomes the final contract.
+*   **Bid Types:**
+    *   **Normal Bid:** Any bid in Phase 1 that is ≤18 (3p) or ≤20 (4p). Scoring: +1/-1 stake unit.
+    *   **Honors Bid:** Any bid in Phase 1 that exceeds 18 (3p) or 20 (4p). Scoring: +2/-2 stake units. No separate declaration needed - the bid value itself determines this status.
 *   **Lead:** To play the first card to a trick.
 
 ## 9. Glossary
@@ -240,9 +243,10 @@ In these cases, the final settlement occurs at the end based on the difference i
 *   **Folded Trump Indicator:** The single card placed face-down by the Declarer representing the secret trump suit.
 *   **Follow Suit:** To play a card of the same suit as the card led to the trick.
 *   **Full Game:** A complete game that continues until one team (in 4-player mode) or one player (in 3-player mode) loses all their stakes.
-*   **Honors:** A bid made during the first bidding round that *exceeds* 18 (3-Player) or *exceeds* 20 (4-Player). The special Honors scoring (+/- 2 stakes) applies ONLY if this bid becomes the final contract AND was established during the first bidding round. If bidding continues to Round 2, the Round 2 scoring rules apply regardless of the bid value.
+*   **Honors Bid:** Any bid made during the first bidding round that *exceeds* 18 (3-Player) or *exceeds* 20 (4-Player) is automatically considered an Honors bid. Players do not make a separate declaration - the bid value itself determines this status. Honors bids carry higher scoring implications: if made: +2 units of stake; if failed: -2 units of stake. The special Honors scoring applies ONLY if this bid becomes the final contract AND was established during the first bidding round. If bidding continues to Round 2, the Round 2 scoring rules apply regardless of the bid value.
 *   **Lead:** To play the first card to a trick.
 *   **Lead Suit:** The suit of the first card played in a trick. All players must follow this suit if they have cards of that suit in their hand (with certain exceptions as noted in the rules).
+*   **Normal Bid:** Any bid made during the first bidding round that is equal to or less than 18 (3-Player) or equal to or less than 20 (4-Player). Normal bids have standard scoring implications: if made: +1 unit of stake; if failed: -1 unit of stake.
 *   **Original Starting Bidder:** The player to the dealer's left, who starts the bidding and leads the first trick. This player becomes the dealer for the next round.
 *   **Plain Suit:** Any suit that is not the trump suit.
 *   **Round:** A complete cycle of gameplay for one deal, consisting of dealing, two bidding phases, playing all 8 tricks, and scoring for that deal.
