@@ -26,26 +26,25 @@ const BiddingInterface: React.FC<BiddingInterfaceProps> = ({
   // Draggable panel states
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState({ x: 20, y: 20 });
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [initialMousePos, setInitialMousePos] = useState({ x: 0, y: 0 });
+  const [initialPosition, setInitialPosition] = useState({ x: 0, y: 0 });
   const panelRef = useRef<HTMLDivElement>(null);
 
   // Handle mouse events for dragging
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (panelRef.current) {
-      const rect = panelRef.current.getBoundingClientRect();
-      setDragOffset({
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
-      });
-      setIsDragging(true);
-    }
+    setIsDragging(true);
+    setInitialMousePos({ x: e.clientX, y: e.clientY });
+    setInitialPosition({ ...position });
   };
 
   const handleMouseMove = (e: MouseEvent) => {
     if (isDragging) {
+      const deltaX = e.clientX - initialMousePos.x;
+      const deltaY = e.clientY - initialMousePos.y;
+
       setPosition({
-        x: e.clientX - dragOffset.x,
-        y: e.clientY - dragOffset.y,
+        x: initialPosition.x + deltaX,
+        y: initialPosition.y + deltaY,
       });
     }
   };
