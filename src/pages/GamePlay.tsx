@@ -1,13 +1,17 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGameStore } from "../store/gameStore";
 import GameBoard from "../components/game/GameBoard";
 import BiddingInterface from "../components/game/BiddingInterface";
 import TrumpSelectionInterface from "../components/game/TrumpSelectionInterface";
 import StandaloneTrickConfirmation from "../components/game/StandaloneTrickConfirmation";
+import DebugControls from "../components/game/DebugControls";
+import { Trick } from "../models/game";
 
 const GamePlay = () => {
   const navigate = useNavigate();
+  const [showDebugControls, setShowDebugControls] = useState(false);
+
   const {
     players,
     gameMode,
@@ -28,15 +32,33 @@ const GamePlay = () => {
     playCard,
     requestTrumpReveal,
     confirmTrick,
-    startGame,
+    addToHistory,
+    startRound,
   } = useGameStore();
 
   // Redirect to setup if no game is initialized
   useEffect(() => {
     if (players.length === 0) {
       navigate("/setup");
+      return;
     }
-  }, [players, navigate]);
+
+    // Debug log to see what's happening when the game loads
+    console.log("GamePlay component loaded with:", {
+      players,
+      currentPhase,
+      currentPlayerIndex,
+      currentTrick,
+      gameMode,
+    });
+  }, [
+    players,
+    navigate,
+    currentPhase,
+    currentPlayerIndex,
+    currentTrick,
+    gameMode,
+  ]);
 
   // Log when game phase changes
   useEffect(() => {
@@ -50,6 +72,18 @@ const GamePlay = () => {
     }
   }, [currentPhase, completedTrickAwaitingConfirmation]);
 
+  // Make sure we have a properly initialized game, otherwise start a new one
+  useEffect(() => {
+    if (currentPhase === "setup" && players.length > 0) {
+      console.log(
+        "Game is in setup phase but players exist, starting the round"
+      );
+      // If we have players but still in setup phase, we need to start the round
+      addToHistory("startRound", {});
+      startRound();
+    }
+  }, [currentPhase, players, addToHistory, startRound]);
+
   // Current player information
   const currentPlayer = players[currentPlayerIndex] || {
     id: "",
@@ -59,22 +93,24 @@ const GamePlay = () => {
 
   // Handle bid submission
   const handleBid = (amount: number | null, isHonors: boolean) => {
+    // Record history before action
+    addToHistory("processBid", {
+      playerId: currentPlayer.id,
+      amount,
+      isHonors,
+    });
     processBid(currentPlayer.id, amount, isHonors);
-  };
-
-  // Handle card play
-  const handleCardPlay = (card: { id: string }) => {
-    playCard(currentPlayer.id, card.id);
-  };
-
-  // Handle trump reveal request
-  const handleRequestTrumpReveal = () => {
-    return requestTrumpReveal();
   };
 
   // Handle provisional trump selection
   const handleProvisionalTrumpSelect = (cardId: string) => {
-    selectProvisionalTrump(cardId);
+    // Record history before action
+    addToHistory("selectProvisionalTrump", {
+      playerId: currentPlayer.id,
+      cardId,
+    });
+
+    selectProvisionalTrump(currentPlayer.id, cardId);
   };
 
   // Handle final trump selection
@@ -82,34 +118,72 @@ const GamePlay = () => {
     keepProvisional: boolean,
     newTrumpCardId?: string
   ) => {
-    finalizeTrump(keepProvisional, newTrumpCardId);
+    // Record history before action
+    addToHistory("finalizeTrump", {
+      playerId: currentPlayer.id,
+      keepProvisional,
+      newTrumpCardId,
+    });
+
+    finalizeTrump(currentPlayer.id, keepProvisional, newTrumpCardId);
   };
 
-  // Determine current bidding round
+  // Handle card play
+  const handleCardPlay = (card: { id: string }) => {
+    // Record history before action
+    addToHistory("playCard", {
+      playerId: currentPlayer.id,
+      cardId: card.id,
+    });
+
+    playCard(currentPlayer.id, card.id);
+  };
+
+  // Handle trump reveal request
+  const handleRequestTrumpReveal = () => {
+    // Record history before action
+    addToHistory("requestTrumpReveal", {});
+
+    // Call the actual function and ensure we return a boolean
+    const result = requestTrumpReveal();
+    return result === true; // Explicitly check for true
+  };
+
+  // Handle trick confirmation
+  const handleConfirmTrick = () => {
+    // Record history before action
+    addToHistory("confirmTrick", {});
+
+    confirmTrick();
+  };
+
+  // Toggle debug controls
+  const toggleDebugControls = () => {
+    setShowDebugControls((prev) => !prev);
+  };
+
+  // Helper to determine current UI phase
   const isBiddingRound1 =
     currentPhase === "bidding1_start" ||
     currentPhase === "bidding1_in_progress";
+
   const isBiddingRound2 =
     currentPhase === "bidding2_start" ||
     currentPhase === "bidding2_in_progress";
 
-  // Check if there was new bidding in round 2
-  // If there are bids in round 2 that are not passes, then there was new bidding
-  const newBiddingInRound2 = bids2 && bids2.some((bid) => !bid.isPass);
+  // Fix the newBiddingInRound2 calculation to ensure it's always a boolean
+  const newBiddingInRound2 = !!(
+    highestBid1 &&
+    highestBid2 &&
+    bids2.some((bid) => bid.amount !== null) &&
+    highestBid1.playerId !== highestBid2.playerId
+  );
 
-  // Handle trick confirmation
-  const handleConfirmTrick = () => {
-    // Validate we're in the right state
-    if (
-      currentPhase !== "trick_completed_awaiting_confirmation" ||
-      !completedTrickAwaitingConfirmation
-    ) {
-      console.error("Cannot confirm trick - not in the right state");
-      return;
-    }
-
-    // Call the store action to confirm the trick
-    confirmTrick();
+  // Make sure to get the correct winner name
+  const getWinnerName = (trick: Trick | undefined) => {
+    if (!trick || !trick.winnerId) return "Unknown";
+    const winner = players.find((p) => p.id === trick.winnerId);
+    return winner?.name || "Unknown";
   };
 
   return (
@@ -139,6 +213,16 @@ const GamePlay = () => {
             Debug State
           </button>
 
+          <button
+            type="button"
+            onClick={toggleDebugControls}
+            className={`${
+              showDebugControls ? "bg-red-600" : "bg-purple-600"
+            } text-white text-xs px-2 py-1 rounded`}
+          >
+            {showDebugControls ? "Hide Debug Controls" : "Show Debug Controls"}
+          </button>
+
           {currentPhase === "trick_completed_awaiting_confirmation" && (
             <button
               type="button"
@@ -162,40 +246,25 @@ const GamePlay = () => {
       {/* Standalone trick confirmation UI - ALWAYS SHOWN when a trick is completed */}
       {currentPhase === "trick_completed_awaiting_confirmation" &&
         completedTrickAwaitingConfirmation && (
-          <StandaloneTrickConfirmation
-            trick={completedTrickAwaitingConfirmation}
-            onConfirm={handleConfirmTrick}
-            autoConfirmDelay={5000} // 5 seconds for better visibility
-            winnerName={
-              players.find(
-                (p) => p.id === completedTrickAwaitingConfirmation.winnerId
-              )?.name || "Unknown"
-            }
-          />
+          <div className="mb-4">
+            <StandaloneTrickConfirmation
+              trick={completedTrickAwaitingConfirmation}
+              onConfirm={handleConfirmTrick}
+              autoConfirmDelay={3000}
+              winnerName={getWinnerName(completedTrickAwaitingConfirmation)}
+            />
+          </div>
         )}
 
-      {/* Game setup state */}
-      {currentPhase === "setup" && (
-        <div className="grid place-items-center h-[calc(100vh-150px)]">
-          <div className="text-center text-white">
-            <h2 className="text-2xl mb-4">Ready to Start</h2>
-            <button
-              type="button"
-              onClick={startGame}
-              className="px-6 py-3 bg-blue-600 rounded-lg hover:bg-blue-700 text-white"
-            >
-              Start Game
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Game board for bidding and playing phases */}
+      {/* Game board - shown during all relevant phases */}
       {(isBiddingRound1 ||
         isBiddingRound2 ||
         currentPhase === "playing_start_trick" ||
         currentPhase === "playing_in_progress" ||
-        currentPhase === "trick_completed_awaiting_confirmation") && (
+        currentPhase === "trick_completed_awaiting_confirmation" ||
+        // Include setup phase if players exist (for debugging)
+        (currentPhase === "setup" && players.length > 0) ||
+        currentPhase === "dealing1") && (
         <div className="w-full">
           <GameBoard
             players={players}
@@ -278,24 +347,8 @@ const GamePlay = () => {
         </div>
       )}
 
-      {/* Round over */}
-      {currentPhase === "round_over" && (
-        <div className="grid place-items-center h-[calc(100vh-150px)]">
-          <div className="text-center text-white">
-            <h2 className="text-2xl mb-4">Round Complete</h2>
-            <p className="mb-6">
-              The round has ended. Round summary will be displayed here.
-            </p>
-            <button
-              type="button"
-              onClick={() => navigate("/")}
-              className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-700"
-            >
-              Back to Home
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Debug controls */}
+      <DebugControls visible={showDebugControls} />
     </div>
   );
 };

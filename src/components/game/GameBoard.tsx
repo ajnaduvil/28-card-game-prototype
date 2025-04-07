@@ -91,6 +91,25 @@ const GameBoard: React.FC<GameBoardProps> = ({
     playerPositions[player.id] = getPlayerPosition(index);
   });
 
+  // Add debug logging
+  React.useEffect(() => {
+    console.log("GameBoard rendering with props:", {
+      playersCount: players?.length,
+      currentPlayerIndex,
+      currentTrick,
+      trumpState,
+      gameMode,
+      completedTrick: completedTrickAwaitingConfirmation ? "present" : "none",
+    });
+  }, [
+    players,
+    currentPlayerIndex,
+    currentTrick,
+    trumpState,
+    gameMode,
+    completedTrickAwaitingConfirmation,
+  ]);
+
   return (
     <div className="game-board relative bg-gray-900 rounded-xl shadow-lg w-full max-w-5xl h-[700px] mx-auto overflow-hidden">
       <div className="absolute inset-0 opacity-10 pointer-events-none bg-[url('/src/assets/images/card-table-bg.jpg')] bg-cover" />

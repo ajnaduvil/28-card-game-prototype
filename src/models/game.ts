@@ -66,6 +66,15 @@ export interface GameScore {
     team2Points?: number;   // For 4p (players 1,3)
 }
 
+export interface GameHistoryEntry {
+    stateSnapshot: Partial<GameState>;
+    action: {
+        type: string;
+        payload: Record<string, unknown>;
+    };
+    timestamp: number;
+}
+
 export interface GameState {
     id: string;               // Unique game ID
     createdAt: number;        // Timestamp when game was created
@@ -107,4 +116,9 @@ export interface GameState {
     // Metadata
     isOnline: boolean;        // Whether this is an online game (Phase 2)
     status: 'waiting' | 'active' | 'completed' | 'abandoned'; // Game status
+
+    // Game history for debugging
+    history: GameHistoryEntry[];
+    historyIndex: number;     // Current position in history
+    isReplayMode: boolean;    // Whether we're in replay mode
 }

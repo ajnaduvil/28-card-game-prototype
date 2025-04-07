@@ -10,32 +10,57 @@ import {
     determineTrickWinner,
     isValidPlay
 } from '../services/local/cardUtils';
+import { produce } from "immer";
+import { Card, Suit } from '../models/card';
+import { v4 as uuidv4 } from 'uuid';
+import { dealCards as dealingServiceDealCards } from '../services/local/dealingService';
+import {
+    canFollowSuit
+} from '../services/local/cardUtils';
+import { GameHistoryEntry } from '../models/game';
 
 // Define the actions that can be performed on the game state
-interface GameActions {
+export interface GameActions {
     // Game initialization
-    initializeGame: (playerNames: string[], gameMode?: '3p' | '4p') => void;
-    startGame: () => void;
+    initializeGame: (playerNames: string[], gameMode?: "3p" | "4p") => void;
+    startRound: () => void;
 
-    // Bidding actions
-    processBid: (playerId: string, amount: number | null, isHonors?: boolean) => void;
+    // Bidding phase
+    processBid: (playerId: string, amount: number | null, isHonors?: boolean) => boolean;
 
-    // Trump selection
-    selectProvisionalTrump: (cardId: string) => void;
-    finalizeTrump: (keepProvisional: boolean, newTrumpCardId?: string) => void;
+    // Trump selection phase
+    selectProvisionalTrump: (playerId: string, cardId: string) => boolean;
+    finalizeTrump: (playerId: string, keepProvisional: boolean, newTrumpCardId?: string) => boolean;
 
-    // Card playing
-    playCard: (playerId: string, cardId: string) => void;
+    // Playing phase
+    playCard: (playerId: string, cardId: string) => boolean;
     requestTrumpReveal: () => boolean;
-    confirmTrick: () => void; // Confirm a completed trick and move to next trick
-
-    // Declarer explicitly reveals trump (usually when playing a trump card)
     declarerRevealTrump: (playerId: string) => boolean;
+
+    // Trick completion
+    confirmTrick: () => boolean;
+
+    // History and debugging
+    addToHistory: (action: string, payload: Record<string, unknown>) => void;
+    goBackInHistory: () => void;
+    goForwardInHistory: () => void;
+    exitReplayMode: () => void;
+    correctMove: (action: string, payload: Record<string, unknown>) => void;
+}
+
+// Game History Entry Interface
+export interface GameHistoryEntry {
+    stateSnapshot: Partial<GameState>;
+    action: {
+        type: string;
+        payload: any;
+    };
+    timestamp: number;
 }
 
 // Create the store with immer middleware for easier state updates
 export const useGameStore = create<GameState & GameActions>()(
-    immer((set) => ({
+    immer((set, get) => ({
         // Initial state
         id: '',
         createdAt: Date.now(),
@@ -66,6 +91,11 @@ export const useGameStore = create<GameState & GameActions>()(
         targetScore: 8, // Default target score to win the game
         isOnline: false,
         status: 'waiting',
+
+        // History
+        history: [],
+        historyIndex: -1,
+        isReplayMode: false,
 
         // Game initialization action
         initializeGame: (playerNames, gameMode = '4p') => {
@@ -116,11 +146,21 @@ export const useGameStore = create<GameState & GameActions>()(
                 }
 
                 state.status = 'active';
+
+                // Initialize history
+                state.history = [];
+                state.historyIndex = -1;
+                state.isReplayMode = false;
             });
+
+            // Start the first round immediately after initialization
+            get().startRound();
         },
 
         // Start the game by dealing cards and starting bidding
-        startGame: () => {
+        startRound: () => {
+            let success = false;
+
             set(state => {
                 // Generate and shuffle deck based on game mode
                 const newDeck = shuffleDeck(generateDeck(state.gameMode));
@@ -154,11 +194,16 @@ export const useGameStore = create<GameState & GameActions>()(
 
                 state.deck = remainingDeck;
                 state.currentPhase = 'bidding1_start';
+                success = true;
             });
+
+            return success;
         },
 
         // Process a bid from a player
         processBid: (playerId, amount, isHonors = false) => {
+            let success = false;
+
             set(state => {
                 // Validate it's the player's turn
                 const currentPlayer = state.players[state.currentPlayerIndex];
@@ -295,10 +340,15 @@ export const useGameStore = create<GameState & GameActions>()(
                     }
                 }
             });
+
+            // Set success flag before returning
+            success = true;
         },
 
         // Select provisional trump by folding a card
-        selectProvisionalTrump: (cardId) => {
+        selectProvisionalTrump: (playerId, cardId) => {
+            let success = false;
+
             set(state => {
                 // Validate we're in the right phase
                 if (state.currentPhase !== 'bidding1_complete') {
@@ -342,10 +392,14 @@ export const useGameStore = create<GameState & GameActions>()(
                 // Bidding starts with original bidder again
                 state.currentPlayerIndex = state.originalBidderIndex;
             });
+
+            return success;
         },
 
         // Finalize trump selection (keep or change)
-        finalizeTrump: (keepProvisional, newTrumpCardId) => {
+        finalizeTrump: (playerId, keepProvisional, newTrumpCardId) => {
+            let success = false;
+
             set(state => {
                 // Validate we're in the right phase
                 if (state.currentPhase !== 'bidding2_complete') {
@@ -453,6 +507,8 @@ export const useGameStore = create<GameState & GameActions>()(
 
                 state.currentPhase = 'playing_start_trick';
             });
+
+            return success;
         },
 
         // Play a card
@@ -645,6 +701,8 @@ export const useGameStore = create<GameState & GameActions>()(
 
         // Confirm a completed trick and move to the next trick
         confirmTrick: () => {
+            let success = false;
+
             set(state => {
                 // Validate we're in the right phase
                 if (state.currentPhase !== 'trick_completed_awaiting_confirmation') {
@@ -711,6 +769,8 @@ export const useGameStore = create<GameState & GameActions>()(
                     console.log("Starting new trick with leader:", winnerPlayer.name);
                 }
             });
+
+            return success;
         },
 
         // Request trump reveal (by opponent)
@@ -777,6 +837,135 @@ export const useGameStore = create<GameState & GameActions>()(
             });
 
             return success;
+        },
+
+        // Add history and debugging methods at end of store
+        // Add current state to history
+        addToHistory: (action, payload) => {
+            if (get().isReplayMode) return; // Don't record history while in replay mode
+
+            set(state => {
+                // Create a partial snapshot of current state 
+                // excluding history itself to avoid infinite recursion
+                const { history, historyIndex, isReplayMode, ...stateForHistory } = state;
+
+                // Create history entry
+                const historyEntry: GameHistoryEntry = {
+                    stateSnapshot: { ...stateForHistory },
+                    action: {
+                        type: action,
+                        payload
+                    },
+                    timestamp: Date.now()
+                };
+
+                // Add to history
+                state.history.push(historyEntry);
+                state.historyIndex = state.history.length - 1;
+            });
+        },
+
+        // Go back one step in history
+        goBackInHistory: () => {
+            set(state => {
+                if (state.historyIndex <= 0) return; // Can't go back further
+
+                // Enter replay mode if not already
+                if (!state.isReplayMode) {
+                    state.isReplayMode = true;
+                }
+
+                // Move back one step
+                state.historyIndex--;
+
+                // Apply the state from this history point
+                const historyEntry = state.history[state.historyIndex];
+
+                // Restore the state, preserving history-related properties
+                const { history, historyIndex, isReplayMode } = state;
+                Object.assign(state, historyEntry.stateSnapshot);
+                state.history = history;
+                state.historyIndex = historyIndex;
+                state.isReplayMode = isReplayMode;
+            });
+        },
+
+        // Go forward one step in history
+        goForwardInHistory: () => {
+            set(state => {
+                if (!state.isReplayMode || state.historyIndex >= state.history.length - 1) return;
+
+                // Move forward one step
+                state.historyIndex++;
+
+                // Apply the state from this history point
+                const historyEntry = state.history[state.historyIndex];
+
+                // Restore the state, preserving history-related properties
+                const { history, historyIndex, isReplayMode } = state;
+                Object.assign(state, historyEntry.stateSnapshot);
+                state.history = history;
+                state.historyIndex = historyIndex;
+                state.isReplayMode = isReplayMode;
+
+                // Exit replay mode if we've reached the end
+                if (state.historyIndex === state.history.length - 1) {
+                    state.isReplayMode = false;
+                }
+            });
+        },
+
+        // Exit replay mode and return to current state
+        exitReplayMode: () => {
+            set(state => {
+                if (!state.isReplayMode) return;
+
+                // Jump to most recent history entry
+                state.historyIndex = state.history.length - 1;
+
+                // Apply the state from this history point
+                const historyEntry = state.history[state.historyIndex];
+
+                // Restore the state, preserving history-related properties
+                const { history, historyIndex } = state;
+                Object.assign(state, historyEntry.stateSnapshot);
+                state.history = history;
+                state.historyIndex = historyIndex;
+                state.isReplayMode = false;
+            });
+        },
+
+        // Correct a move in history
+        correctMove: (action, payload) => {
+            set(state => {
+                if (!state.isReplayMode) return;
+
+                // Create a new history from current point forward
+                const newHistory = state.history.slice(0, state.historyIndex + 1);
+
+                // Add the corrected action
+                const { history, historyIndex, isReplayMode, ...stateForHistory } = state;
+
+                const historyEntry: GameHistoryEntry = {
+                    stateSnapshot: { ...stateForHistory },
+                    action: {
+                        type: action,
+                        payload
+                    },
+                    timestamp: Date.now()
+                };
+
+                newHistory.push(historyEntry);
+
+                // Update history
+                state.history = newHistory;
+                state.historyIndex = newHistory.length - 1;
+                state.isReplayMode = false;
+
+                // Execute the corrected action
+                // This would need specific handling per action type
+                // For now, let's assume the corrected move will be re-played by the user
+            });
         }
     }))
 );
