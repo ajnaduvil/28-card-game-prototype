@@ -122,14 +122,27 @@ The dealer deals cards clockwise in two distinct batches, with a bidding round a
 5.  **Winning a Trick:** The highest trump card played wins the trick *if the trump suit has been revealed*. If no trump cards are played, or if the trump suit is not revealed, the highest card of the suit led wins.
 6.  **Collecting Tricks:** The winner of the trick collects the cards played (3 or 4 cards) and places them face-down.
 7.  **Leading Subsequent Tricks (Tricks 2-8):** The **winner of the previous trick** leads the next trick.
+8.  **Conceding the Round:** If the Final Declarer believes they cannot win enough points to meet their bid, they may concede the round. This option is only available when the Declarer has not yet won enough points to meet their bid. When conceding:
+    *   The Declarer announces their concession.
+    *   Play immediately stops.
+    *   The round is automatically scored as a failed bid:
+        *   **4-Player Mode:** The Declarer's entire team loses the round.
+        *   **3-Player Mode:** The individual Declarer loses the round.
+    *   Stakes are settled according to the scoring rules for a failed bid.
+    *   Players proceed to the next round with a new dealer.
 
 ## 6. Scoring
 
-1.  **Count Card Points:** After all 8 tricks are played, each side (Declarer's team/side vs. Defenders' team/side) sums the point values (J=3, 9=2, A=1, 10=1) of the cards in the tricks they won.
-2.  **Determine Round Outcome:** Compare the Final Declarer's side's total points against the Final Contract bid.
-    *   **Bid Made:** Declarer's points >= Final Contract.
-    *   **Bid Failed:** Declarer's points < Final Contract.
-3.  **Award Game Points & Settle Stakes (Confirm House Rules):** Accumulate Game Points and exchange stakes based on the round outcome.
+1.  **Determine Round Outcome:**
+    *   **If the Declarer Conceded:** The round is automatically scored as a failed bid. No point counting is necessary, as concession results in an automatic loss. Note that concession is only possible when the Declarer has not yet won enough points to meet their bid.
+        *   **4-Player Mode:** The Declarer's entire team loses the round.
+        *   **3-Player Mode:** The individual Declarer loses the round.
+    *   **If All Tricks Were Played:**
+        *   **Count Card Points:** Each side (Declarer's team/side vs. Defenders' team/side) sums the point values (J=3, 9=2, A=1, 10=1) of the cards in the tricks they won.
+        *   **Compare Points to Bid:** Compare the Final Declarer's side's total points against the Final Contract bid.
+            *   **Bid Made:** Declarer's points >= Final Contract.
+            *   **Bid Failed:** Declarer's points < Final Contract.
+2.  **Award Game Points & Settle Stakes (Confirm House Rules):** Accumulate Game Points and exchange stakes based on the round outcome.
     *   **If Final Bid was from Round 1:**
         *   **Normal Bid (<=18 for 3p / <=20 for 4p):**
             *   Bid Made: +1 Game Point for Declarer('s side).
@@ -182,6 +195,7 @@ In these cases, the final settlement of stakes occurs at the end based on the di
 *   **Original Bidder Leads:** The player to the dealer's right *always* leads the first trick.
 *   **Dealer Rotation:** After each round, the Original Starting Bidder becomes the dealer for the next round.
 *   **Tiered Scoring:** Game points awarded/lost depend on whether the final bid was made in Round 1 or Round 2 (or was Honors).
+*   **Concession Option:** The Declarer may concede if they believe they cannot win enough points to meet their bid. This option is only available when the Declarer has not yet won enough points to meet their bid. Concession results in an automatic loss - the entire team loses in 4-player mode, and the individual Declarer loses in 3-player mode.
 *   **Full Game Definition:** A full game continues until one team (4p) or player (3p) loses all their stakes.
 *   **Follow Suit:** To play a card of the same suit as the card led to the trick.
 *   **Honors:** A bid made during the first bidding round that *exceeds* 18 (3-Player) or *exceeds* 20 (4-Player), carrying specific scoring implications if it becomes the final contract.
@@ -190,6 +204,10 @@ In these cases, the final settlement of stakes occurs at the end based on the di
 ## 9. Glossary
 
 *   **Bid:** A declaration during the auction phase to win a certain number of card points.
+*   **Concede:** A decision by the Declarer to surrender the round before all tricks are played when they believe they cannot win enough points to meet their bid. This option is only available when the Declarer has not yet won enough points to meet their bid. When a Declarer concedes, the round is automatically lost:
+    *   **4-Player Mode:** The Declarer's entire team loses the round.
+    *   **3-Player Mode:** The individual Declarer loses the round.
+    The bid is considered failed, stakes are settled accordingly, and players proceed to the next round.
 *   **Contract:** The final, highest bid made in a round, which the Declarer must achieve.
 *   **Dealer:** The player responsible for shuffling and dealing the cards for a round. For the first round, the dealer is chosen randomly. For subsequent rounds, the Original Starting Bidder from the previous round becomes the dealer.
 *   **Declarer:** The player who makes the final, highest bid (the Final Declarer).
