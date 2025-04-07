@@ -4,7 +4,7 @@ import { useGameStore } from "../store/gameStore";
 import GameBoard from "../components/game/GameBoard";
 import BiddingInterface from "../components/game/BiddingInterface";
 import TrumpSelectionInterface from "../components/game/TrumpSelectionInterface";
-import TrickConfirmationOverlay from "../components/game/TrickConfirmationOverlay";
+import StandaloneTrickConfirmation from "../components/game/StandaloneTrickConfirmation";
 
 const GamePlay = () => {
   const navigate = useNavigate();
@@ -99,13 +99,7 @@ const GamePlay = () => {
 
   // Handle trick confirmation
   const handleConfirmTrick = () => {
-    console.log("GamePlay: handleConfirmTrick called");
-    console.log("Current phase:", currentPhase);
-    console.log(
-      "Completed trick awaiting confirmation:",
-      completedTrickAwaitingConfirmation
-    );
-
+    // Validate we're in the right state
     if (
       currentPhase !== "trick_completed_awaiting_confirmation" ||
       !completedTrickAwaitingConfirmation
@@ -114,16 +108,8 @@ const GamePlay = () => {
       return;
     }
 
-    console.log(
-      "Confirming trick with winner:",
-      players.find((p) => p.id === completedTrickAwaitingConfirmation.winnerId)
-        ?.name
-    );
-
     // Call the store action to confirm the trick
     confirmTrick();
-
-    console.log("Trick confirmed, new phase:", currentPhase);
   };
 
   return (
@@ -136,8 +122,8 @@ const GamePlay = () => {
           <div>Current Player: {currentPlayer.name}</div>
         </div>
 
-        {/* Debug buttons */}
-        <div className="mt-2 flex gap-2">
+        {/* Debug buttons and phase indicator */}
+        <div className="mt-2 flex gap-2 items-center">
           <button
             type="button"
             onClick={() => {
@@ -162,53 +148,30 @@ const GamePlay = () => {
               Force Confirm Trick
             </button>
           )}
+
+          {/* Phase indicator */}
+          <div className="ml-auto flex items-center gap-2">
+            <span className="text-xs">Phase:</span>
+            <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
+              {currentPhase}
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Standalone trick confirmation overlay - ALWAYS VISIBLE FOR TESTING */}
+      {/* Standalone trick confirmation UI - ALWAYS SHOWN when a trick is completed */}
       {currentPhase === "trick_completed_awaiting_confirmation" &&
         completedTrickAwaitingConfirmation && (
-          <TrickConfirmationOverlay
+          <StandaloneTrickConfirmation
             trick={completedTrickAwaitingConfirmation}
             onConfirm={handleConfirmTrick}
-            autoConfirmDelay={3000}
+            autoConfirmDelay={5000} // 5 seconds for better visibility
             winnerName={
               players.find(
                 (p) => p.id === completedTrickAwaitingConfirmation.winnerId
               )?.name || "Unknown"
             }
           />
-        )}
-
-      {/* Fallback confirmation UI in case the overlay doesn't work */}
-      {currentPhase === "trick_completed_awaiting_confirmation" &&
-        completedTrickAwaitingConfirmation && (
-          <div className="fixed inset-0 flex items-center justify-center z-[9999] pointer-events-auto">
-            <div className="bg-red-700 text-white p-6 rounded-lg shadow-xl border-4 border-yellow-500 max-w-md w-full text-center">
-              <h2 className="text-2xl font-bold mb-4">TRICK COMPLETE!</h2>
-              <p className="mb-4 text-xl">
-                Winner:{" "}
-                <span className="text-yellow-300 font-bold">
-                  {players.find(
-                    (p) => p.id === completedTrickAwaitingConfirmation.winnerId
-                  )?.name || "Unknown"}
-                </span>
-              </p>
-              <p className="mb-6">
-                Points:{" "}
-                <span className="text-yellow-300 font-bold">
-                  {completedTrickAwaitingConfirmation.points}
-                </span>
-              </p>
-              <button
-                type="button"
-                onClick={handleConfirmTrick}
-                className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg text-xl"
-              >
-                Continue
-              </button>
-            </div>
-          </div>
         )}
 
       {/* Game setup state */}

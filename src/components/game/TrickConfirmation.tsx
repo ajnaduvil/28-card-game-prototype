@@ -33,37 +33,42 @@ const TrickConfirmation: React.FC<TrickConfirmationProps> = ({
     };
   }, [onConfirm, autoConfirmDelay]);
 
-  // Log that we're rendering the confirmation UI
-  console.log("Rendering TrickConfirmation component", {
-    trick,
-    winnerName,
-    timeLeft,
-  });
+  // Component is now working correctly
 
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center z-50">
-      {/* Added a full-screen semi-transparent overlay to make it more visible */}
-      <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+    <div
+      className="absolute inset-0 flex items-center justify-center z-50"
+      style={{ pointerEvents: "auto" }}
+    >
+      {/* Semi-transparent background - made more visible */}
+      <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full"></div>
 
-      <div className="relative bg-red-800 rounded-lg p-6 text-center shadow-xl border-4 border-yellow-500 max-w-xs w-full">
-        <h2 className="text-2xl font-bold text-white mb-4">TRICK COMPLETE!</h2>
-
-        <div className="mb-4 text-xl">
-          <span className="text-yellow-400 font-bold">{winnerName}</span>
-          <span className="text-white"> wins the trick</span>
+      {/* Confirmation UI - made larger and more prominent */}
+      <div className="relative bg-green-800 bg-opacity-95 rounded-lg px-6 py-4 text-center shadow-xl border-2 border-yellow-400 max-w-[220px] w-full z-50">
+        {/* Winner badge */}
+        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-yellow-500 text-green-900 text-xs font-bold py-1 px-3 rounded-full shadow-md">
+          Trick Complete
         </div>
 
-        <div className="text-center mb-4">
-          <span className="text-white">Points: </span>
-          <span className="text-yellow-400 font-bold text-2xl">
+        <div className="mt-3 mb-2 text-base">
+          <span className="text-yellow-300 font-bold">{winnerName}</span>
+          <span className="text-white"> wins</span>
+        </div>
+
+        <div className="text-center mb-3">
+          <span className="text-white text-sm">Points: </span>
+          <span className="text-yellow-300 font-bold text-xl">
             {trick.points}
           </span>
         </div>
 
         <button
           type="button"
-          onClick={onConfirm}
-          className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg transition-colors text-lg"
+          onClick={(e) => {
+            e.stopPropagation(); // Prevent event bubbling
+            onConfirm();
+          }}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors text-sm w-full"
         >
           Continue ({timeLeft}s)
         </button>

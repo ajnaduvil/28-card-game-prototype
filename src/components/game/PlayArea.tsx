@@ -87,28 +87,27 @@ const PlayArea: React.FC<PlayAreaProps> = ({
       ? players.find((p) => p.id === completedTrick.winnerId)?.name || "Unknown"
       : "Unknown";
 
-    // Calculate total points in the completed trick
-    const trickPoints = completedTrick.cards.reduce(
-      (sum, card) => sum + card.pointValue,
-      0
-    );
-
-    console.log("Rendering completed trick awaiting confirmation:", {
-      completedTrick,
-      winnerName,
-      trickPoints,
-    });
+    // Render the completed trick with confirmation UI
 
     return (
-      <div className="play-area w-80 h-80 rounded-full bg-green-900 border-4 border-green-700 shadow-inner relative">
-        {/* Display the completed trick cards */}
+      <div className="play-area w-80 h-80 rounded-full bg-green-900 border-4 border-green-700 shadow-inner relative overflow-visible">
+        {/* Display the completed trick cards in a fan pattern */}
         {completedTrick.cards.map((card, index) => {
-          // Position cards in a circle around the center
-          const angle =
-            index * (360 / completedTrick.cards.length) * (Math.PI / 180);
-          const radius = 30; // Smaller radius to keep cards closer to center
-          const x = Math.cos(angle) * radius;
-          const y = Math.sin(angle) * radius;
+          // Position cards in a fan pattern in the center
+          const totalCards = completedTrick.cards.length;
+          const fanAngle = 30; // Total angle of the fan in degrees
+          const startAngle = -fanAngle / 2; // Start from negative half of the fan angle
+          const angleStep = fanAngle / (totalCards - 1 || 1); // Avoid division by zero
+          const currentAngle = startAngle + index * angleStep;
+
+          // Convert angle to radians and calculate position
+          const radians = (currentAngle * Math.PI) / 180;
+          const radius = 20; // Distance from center
+          const x = Math.sin(radians) * radius; // Using sin for x to create horizontal fan
+          const y = -Math.cos(radians) * radius * 0.5; // Using cos for y with smaller scale for vertical
+
+          // Add a slight overlap effect
+          const zIndex = index + 10; // Ensure cards are above the play area but below confirmation UI
 
           return (
             <div
@@ -117,7 +116,8 @@ const PlayArea: React.FC<PlayAreaProps> = ({
               style={{
                 left: `calc(50% + ${x}px)`,
                 top: `calc(50% + ${y}px)`,
-                zIndex: index + 1,
+                zIndex,
+                transform: `translate(-50%, -50%) rotate(${currentAngle}deg)`,
               }}
             >
               <Card card={card} size="sm" showPointValue={true} />
@@ -126,11 +126,14 @@ const PlayArea: React.FC<PlayAreaProps> = ({
         })}
 
         {/* Overlay the trick confirmation UI */}
-        <TrickConfirmation
-          trick={completedTrick}
-          onConfirm={onConfirmTrick}
-          winnerName={winnerName}
-        />
+        <div className="absolute inset-0 z-40 pointer-events-auto">
+          <TrickConfirmation
+            trick={completedTrick}
+            onConfirm={onConfirmTrick}
+            winnerName={winnerName}
+            autoConfirmDelay={5000} // Increased to 5 seconds for better visibility during testing
+          />
+        </div>
       </div>
     );
   }
