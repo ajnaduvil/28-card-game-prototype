@@ -34,6 +34,10 @@ const GamePlay = () => {
     confirmTrick,
     addToHistory,
     startRound,
+    roundScores,
+    gameScores,
+    roundNumber,
+    startNewRound,
   } = useGameStore();
 
   // Redirect to setup if no game is initialized
@@ -184,6 +188,13 @@ const GamePlay = () => {
     if (!trick || !trick.winnerId) return "Unknown";
     const winner = players.find((p) => p.id === trick.winnerId);
     return winner?.name || "Unknown";
+  };
+
+  // Add handler for starting new round
+  const handleStartNewRound = () => {
+    // Record history before action
+    addToHistory("startNewRound", {});
+    startNewRound();
   };
 
   return (
@@ -349,6 +360,85 @@ const GamePlay = () => {
 
       {/* Debug controls */}
       <DebugControls visible={showDebugControls} />
+
+      {/* Add round over screen UI */}
+      {currentPhase === "round_over" && (
+        <div className="fixed inset-0 bg-black bg-opacity-80 z-40 flex items-center justify-center">
+          <div className="bg-green-800 p-6 rounded-xl shadow-2xl max-w-2xl w-full">
+            <h2 className="text-2xl font-bold text-white mb-4">
+              Round {roundNumber} Complete
+            </h2>
+
+            {/* Latest round score */}
+            {roundScores.length > 0 && (
+              <div className="mb-6 bg-green-900 p-4 rounded-lg">
+                <h3 className="text-xl text-white mb-2">Round Result</h3>
+                <div className="text-white">
+                  <p>
+                    Contract: {roundScores[roundScores.length - 1].contract}
+                  </p>
+                  <p>
+                    {roundScores[roundScores.length - 1].declarerWon ? (
+                      <span className="text-green-400">Declarer won!</span>
+                    ) : (
+                      <span className="text-red-400">Declarer lost!</span>
+                    )}
+                  </p>
+                  <p>
+                    Points: {roundScores[roundScores.length - 1].declarerPoints}{" "}
+                    / {roundScores[roundScores.length - 1].opponentPoints}
+                  </p>
+                  <p>
+                    Game Points:{" "}
+                    {roundScores[roundScores.length - 1].gamePointsChange}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Current game score */}
+            <div className="mb-6 bg-green-900 p-4 rounded-lg">
+              <h3 className="text-xl text-white mb-2">Game Score</h3>
+              {gameMode === "4p" ? (
+                <div className="grid grid-cols-2 gap-4 text-white">
+                  <div>
+                    <p className="font-bold text-blue-400">Team 1</p>
+                    <p>{gameScores.team1Points} points</p>
+                  </div>
+                  <div>
+                    <p className="font-bold text-red-400">Team 2</p>
+                    <p>{gameScores.team2Points} points</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 gap-4 text-white">
+                  <div>
+                    <p className="font-bold">{players[0]?.name}</p>
+                    <p>{gameScores.player1Points} points</p>
+                  </div>
+                  <div>
+                    <p className="font-bold">{players[1]?.name}</p>
+                    <p>{gameScores.player2Points} points</p>
+                  </div>
+                  <div>
+                    <p className="font-bold">{players[2]?.name}</p>
+                    <p>{gameScores.player3Points} points</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-center">
+              <button
+                onClick={handleStartNewRound}
+                className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform transition hover:scale-105"
+              >
+                Start Next Round
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -46,6 +46,9 @@ export interface GameActions {
     goForwardInHistory: () => void;
     exitReplayMode: () => void;
     correctMove: (action: string, payload: Record<string, unknown>) => void;
+
+    // New method to start a new round
+    startNewRound: () => boolean;
 }
 
 // Game History Entry Interface
@@ -966,6 +969,69 @@ export const useGameStore = create<GameState & GameActions>()(
                 // This would need specific handling per action type
                 // For now, let's assume the corrected move will be re-played by the user
             });
+        },
+
+        // New method to start a new round
+        startNewRound: () => {
+            let success = false;
+
+            set(state => {
+                // Advance the dealer position
+                state.dealerIndex = (state.dealerIndex + 1) % state.players.length;
+
+                // Set the original bidder position (to the right of the dealer)
+                state.originalBidderIndex = (state.dealerIndex + 1) % state.players.length;
+
+                // Increment round number
+                state.roundNumber += 1;
+
+                // Reset player hands and trick data
+                state.players.forEach(player => {
+                    player.hand = [];
+                    player.tricksWon = [];
+                    player.hasPassedCurrentRound = false;
+                    player.hasPassedRound1 = false;
+                    player.isDealer = player.position === state.dealerIndex;
+                    player.isOriginalBidder = player.position === state.originalBidderIndex;
+                });
+
+                // Reset game state for the new round
+                state.currentTrick = null;
+                state.completedTricks = [];
+                state.completedTrickAwaitingConfirmation = undefined;
+                state.bids1 = [];
+                state.bids2 = [];
+                state.highestBid1 = undefined;
+                state.highestBid2 = undefined;
+                state.finalBid = undefined;
+                state.trumpState = { trumpRevealed: false };
+                state.foldedCard = undefined;
+
+                // Update the current player index to the original bidder
+                state.currentPlayerIndex = state.originalBidderIndex;
+
+                // Set the phase back to starting a round
+                state.currentPhase = 'bidding1_start';
+
+                // Deal the first batch of cards
+                const newDeck = shuffleDeck(generateDeck(state.gameMode));
+                state.deck = newDeck;
+
+                // Deal first batch of 4 cards
+                const { hands, remainingDeck } = dealCards(newDeck, state.players.length, 4);
+
+                // Update player hands
+                state.players.forEach((player, index) => {
+                    player.hand = hands[index];
+                });
+
+                state.deck = remainingDeck;
+
+                console.log(`Starting round ${state.roundNumber}`);
+                success = true;
+            });
+
+            return success;
         }
     }))
 );
