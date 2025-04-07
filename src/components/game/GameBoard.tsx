@@ -82,7 +82,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
     // In 4p mode, players 0,2 are team 0 and players 1,3 are team 1
     const teamIndex = playerIndex % 2;
-    return teamIndex === 0 ? "border-blue-500" : "border-red-500";
+    return teamIndex === 0 ? "border-team-a" : "border-team-b";
   };
 
   // Create a map of player IDs to their positions for the PlayArea
@@ -111,11 +111,15 @@ const GameBoard: React.FC<GameBoardProps> = ({
   ]);
 
   return (
-    <div className="game-board relative bg-gray-900 rounded-xl shadow-lg w-full max-w-5xl h-[700px] mx-auto overflow-hidden">
-      <div className="absolute inset-0 opacity-10 pointer-events-none bg-[url('/src/assets/images/card-table-bg.jpg')] bg-cover" />
+    <div className="game-board w-full max-w-7xl h-[700px] mx-auto">
+      {/* Background pattern overlay */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none">
+        <div className="absolute inset-0 bg-pattern-diamonds bg-repeat opacity-5"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-800/50 to-slate-900/70"></div>
+      </div>
 
       {/* Play area in the center */}
-      <div className="absolute inset-0 flex items-center justify-center">
+      <div className="absolute inset-0 flex items-center justify-center z-10">
         <PlayArea
           currentTrick={currentTrick}
           playerPositions={playerPositions}
@@ -137,61 +141,60 @@ const GameBoard: React.FC<GameBoardProps> = ({
         return (
           <div
             key={player.id}
-            className={`absolute transition-all duration-300 ${
+            className={`player-area absolute transition-all duration-300 ${
               position === "bottom"
-                ? "bottom-2 left-1/2 -translate-x-1/2 w-96"
+                ? "bottom-4 left-1/2 -translate-x-1/2 w-[480px]"
                 : position === "top"
-                ? "top-2 left-1/2 -translate-x-1/2 w-96 rotate-180"
+                ? "top-4 left-1/2 -translate-x-1/2 w-[480px] rotate-180"
                 : position === "left"
-                ? "left-2 top-1/2 -translate-y-1/2 w-96 -rotate-90"
+                ? "left-4 top-1/2 -translate-y-1/2 w-[480px] rotate-270"
                 : position === "right"
-                ? "right-2 top-1/2 -translate-y-1/2 w-96 rotate-90"
+                ? "right-4 top-1/2 -translate-y-1/2 w-[480px] rotate-90"
                 : position === "top-left"
-                ? "top-6 left-6 w-96 -rotate-30"
-                : "top-6 right-6 w-96 rotate-30" // top-right
-            } ${isCurrentPlayer ? "z-10" : "z-0"}`}
+                ? "top-10 left-16 w-[460px] -rotate-25"
+                : "top-10 right-16 w-[460px] rotate-25" // top-right
+            } ${isCurrentPlayer ? "z-20" : "z-10"}`}
           >
             {/* Current player turn highlight */}
             {isCurrentPlayer && (
-              <div className="absolute inset-0 -m-2 border-4 border-yellow-400 rounded-xl animate-pulse opacity-70 pointer-events-none"></div>
+              <div className="absolute inset-0 -m-1 rounded-xl pointer-events-none z-0">
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 animate-pulse opacity-50"></div>
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 blur-md animate-pulse opacity-30"></div>
+              </div>
             )}
 
             <div
-              className={`player-info mb-2 text-white flex items-center justify-between px-2 rounded-md border-2 ${
-                isCurrentPlayer
-                  ? "bg-blue-900 border-yellow-400 shadow-lg"
-                  : "bg-gray-800 bg-opacity-70"
+              className={`player-info ${
+                isCurrentPlayer ? "active" : ""
               } ${teamColor}`}
             >
-              <span className="flex items-center gap-1">
-                {player.name}
-                {isDealer && (
-                  <span className="text-xs bg-yellow-600 px-1 rounded ml-1">
-                    D
-                  </span>
-                )}
-                {isOriginalBidder && (
-                  <span className="text-xs bg-purple-600 px-1 rounded ml-1">
-                    B
-                  </span>
-                )}
-                {isDeclarer && (
-                  <span className="text-xs bg-red-600 px-1 rounded ml-1">
-                    Declarer
-                  </span>
-                )}
-              </span>
+              <div className="flex items-center gap-1">
+                {/* Player avatar placeholder */}
+                <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-slate-300 font-medium text-sm overflow-hidden">
+                  {player.name.charAt(0).toUpperCase()}
+                </div>
+
+                <span className="font-medium">{player.name}</span>
+
+                {/* Role badges */}
+                <div className="flex gap-1 ml-1">
+                  {isDealer && <span className="dealer-badge">D</span>}
+                  {isOriginalBidder && <span className="bidder-badge">B</span>}
+                  {isDeclarer && <span className="declarer-badge">TD</span>}
+                </div>
+              </div>
+
               {isCurrentPlayer && (
-                <span className="text-yellow-300 font-bold animate-pulse">
-                  • Your Turn
+                <span className="text-yellow-300 font-medium animate-pulse">
+                  Your Turn
                 </span>
               )}
             </div>
 
             {/* Player's folded trump card area */}
             {isDeclarer && (
-              <div className="absolute left-0 bottom-16 bg-black bg-opacity-70 rounded-md p-2 shadow-lg border border-yellow-500 z-10">
-                <div className="text-xs text-white mb-1 text-center">
+              <div className="absolute left-4 bottom-16 bg-slate-800 bg-opacity-90 rounded-lg p-2 shadow-lg border border-yellow-400 z-10">
+                <div className="text-xs text-white mb-1 text-center font-medium">
                   {trumpState.trumpRevealed ? "Revealed Trump" : "Folded Trump"}
                 </div>
                 {trumpState.trumpRevealed && foldedCard ? (
@@ -199,20 +202,12 @@ const GameBoard: React.FC<GameBoardProps> = ({
                   <Card card={foldedCard} size="sm" isSelectable={false} />
                 ) : (
                   // Otherwise, show the placeholder
-                  <div className="w-12 h-16 bg-gray-800 rounded-md border-2 border-yellow-500 flex items-center justify-center rotate-12 shadow-md">
-                    <span className="text-lg">🃏</span>
+                  <div className="w-14 h-20 bg-indigo-900 rounded-lg border-2 border-yellow-400 flex items-center justify-center rotate-3 shadow-lg">
+                    <span className="text-2xl">🃏</span>
                   </div>
                 )}
               </div>
             )}
-
-            {/* Log props before rendering PlayerHand */}
-            {(() => {
-              console.log(
-                `GameBoard rendering PlayerHand for player index=${index}, id=${player.id}, name=${player.name}. finalDeclarerId=${trumpState.finalDeclarerId}`
-              );
-              return null; // Prevent console.log from returning void in JSX
-            })()}
 
             <PlayerHand
               hand={player.hand}
@@ -229,17 +224,26 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
       {/* Trump indicator */}
       {trumpState.trumpRevealed && trumpState.finalTrumpSuit && (
-        <div className="absolute top-2 right-2 bg-black bg-opacity-80 rounded-md p-2 shadow-md text-white">
-          <span className="font-bold">Trump: </span>
+        <div className="trump-indicator top-4 right-4 z-30">
+          <span className="font-bold">Trump:</span>
           <span
-            className={`${
+            className={`font-medium ${
               trumpState.finalTrumpSuit === "Hearts" ||
               trumpState.finalTrumpSuit === "Diamonds"
                 ? "text-red-500"
-                : "text-blue-300"
+                : "text-blue-400"
             }`}
           >
             {trumpState.finalTrumpSuit}
+          </span>
+          <span className="text-lg ml-1">
+            {trumpState.finalTrumpSuit === "Hearts"
+              ? "♥"
+              : trumpState.finalTrumpSuit === "Diamonds"
+              ? "♦"
+              : trumpState.finalTrumpSuit === "Clubs"
+              ? "♣"
+              : "♠"}
           </span>
         </div>
       )}

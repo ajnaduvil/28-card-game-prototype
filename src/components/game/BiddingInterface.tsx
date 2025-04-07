@@ -119,50 +119,66 @@ const BiddingInterface: React.FC<BiddingInterfaceProps> = ({
 
   if (!isBiddingPhase) {
     return (
-      <div className="text-center p-2">Waiting for bidding to start...</div>
+      <div className="text-center p-4 text-slate-300">
+        Waiting for bidding phase...
+      </div>
     );
   }
 
   return (
     <div
       ref={panelRef}
-      className="bidding-interface bg-gray-800 text-white rounded-lg shadow-md p-2 w-64 absolute z-20 bg-opacity-90 cursor-move"
+      className="bidding-interface bg-slate-900 text-slate-100 rounded-lg shadow-xl p-4 w-72 absolute z-30 cursor-move border border-slate-700"
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
-        border: isDragging ? "2px solid #4299e1" : "2px solid transparent",
-        transition: isDragging ? "none" : "border-color 0.2s",
+        boxShadow: isDragging
+          ? "0 10px 25px -5px rgba(99, 102, 241, 0.5)"
+          : "0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.3)",
+        transition: isDragging ? "none" : "box-shadow 0.3s, border-color 0.3s",
       }}
       onMouseDown={handleMouseDown}
     >
-      <div className="text-center mb-2">
-        <div className="flex justify-between items-center">
-          <div className="w-4 h-4 rounded-full bg-red-500 ml-1" />
-          <h3 className="text-lg font-bold">Round {round} Bidding</h3>
-          <div className="w-4" />
-        </div>
-        <p className="text-sm text-gray-300">{currentPlayerName}'s Turn</p>
-
-        {highestBid && !highestBid.isPass && (
-          <div className="mt-1 p-1 bg-blue-900 rounded text-sm">
-            <span>Highest: </span>
-            <span className="font-bold text-blue-300">
-              {highestBid.amount} {highestBid.isHonors ? "★" : ""}
-            </span>
+      <div className="text-center mb-4">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex space-x-1">
+            <div className="w-3 h-3 rounded-full bg-red-500" />
+            <div className="w-3 h-3 rounded-full bg-yellow-500" />
+            <div className="w-3 h-3 rounded-full bg-green-500" />
           </div>
-        )}
+          <h3 className="text-lg font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+            Round {round} Bidding
+          </h3>
+          <div className="w-6" />
+        </div>
+
+        <div className="bg-slate-800 rounded-lg p-2 mb-3">
+          <p className="text-md font-medium">{currentPlayerName}'s Turn</p>
+
+          {highestBid && !highestBid.isPass && (
+            <div className="mt-2 p-2 bg-indigo-900 bg-opacity-60 rounded-md text-sm border border-indigo-700">
+              <span>Current Highest: </span>
+              <span className="font-bold text-indigo-300">
+                {highestBid.amount} {highestBid.isHonors ? "★" : ""}
+              </span>
+              <div className="text-xs text-slate-400 mt-1">
+                You must bid higher than this value
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="bid-amounts grid grid-cols-5 gap-1 mb-2">
+      <div className="bid-amounts grid grid-cols-5 gap-1 mb-4">
         {availableBids.map((amount) => (
           <button
             key={amount}
-            className={`py-1 px-2 text-sm rounded cursor-pointer ${
+            className={`py-2 px-1 text-sm rounded-md transition-all duration-150 ${
               selectedBid === amount
-                ? "bg-blue-600 text-white"
+                ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30 scale-110 font-medium"
                 : amount >= honorsThreshold
-                ? "bg-purple-700 text-white hover:bg-purple-600"
-                : "bg-gray-700 text-gray-200 hover:bg-gray-600"
+                ? "bg-purple-800 text-white hover:bg-purple-700 hover:scale-105"
+                : "bg-slate-800 text-slate-200 hover:bg-slate-700 hover:scale-105"
             }`}
             onClick={() => handleBidClick(amount)}
           >
@@ -174,7 +190,7 @@ const BiddingInterface: React.FC<BiddingInterfaceProps> = ({
 
       <div className="flex justify-between">
         <button
-          className="bg-red-700 hover:bg-red-600 text-white py-1 px-3 rounded text-sm cursor-pointer"
+          className="bg-red-700 hover:bg-red-600 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors shadow-md hover:shadow-lg"
           onClick={handlePass}
           data-testid="pass-button"
         >
@@ -182,16 +198,16 @@ const BiddingInterface: React.FC<BiddingInterfaceProps> = ({
         </button>
 
         <button
-          className={`bg-green-700 hover:bg-green-600 text-white py-1 px-3 rounded text-sm ${
+          className={`bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-2 px-4 rounded-md text-sm font-medium shadow-md ${
             selectedBid === null
               ? "opacity-50 cursor-not-allowed"
-              : "cursor-pointer"
+              : "hover:from-indigo-500 hover:to-purple-500 hover:shadow-lg"
           }`}
           onClick={handleSubmitBid}
           disabled={selectedBid === null}
           data-testid="submit-bid-button"
         >
-          Bid {selectedBid} {isHonors ? "★" : ""}
+          Bid {selectedBid || ""} {isHonors ? "★" : ""}
         </button>
       </div>
     </div>

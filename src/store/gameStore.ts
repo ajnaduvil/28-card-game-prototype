@@ -342,10 +342,12 @@ export const useGameStore = create<GameState & GameActions>()(
                         state.currentPlayerIndex = nextPlayerIndex;
                     }
                 }
+
+                // Set success flag before returning
+                success = true;
             });
 
-            // Set success flag before returning
-            success = true;
+            return success;
         },
 
         // Select provisional trump by folding a card
@@ -394,6 +396,9 @@ export const useGameStore = create<GameState & GameActions>()(
 
                 // Bidding starts with original bidder again
                 state.currentPlayerIndex = state.originalBidderIndex;
+
+                // Set success flag before returning
+                success = true;
             });
 
             return success;
@@ -509,6 +514,9 @@ export const useGameStore = create<GameState & GameActions>()(
                 };
 
                 state.currentPhase = 'playing_start_trick';
+
+                // Set success flag before returning
+                success = true;
             });
 
             return success;

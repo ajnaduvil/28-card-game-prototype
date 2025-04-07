@@ -175,13 +175,9 @@ const GamePlay = () => {
     currentPhase === "bidding2_start" ||
     currentPhase === "bidding2_in_progress";
 
-  // Fix the newBiddingInRound2 calculation to ensure it's always a boolean
-  const newBiddingInRound2 = !!(
-    highestBid1 &&
-    highestBid2 &&
-    bids2.some((bid) => bid.amount !== null) &&
-    highestBid1.playerId !== highestBid2.playerId
-  );
+  // Check if there was any actual bidding (non-pass bids) in round 2
+  // If all bids in round 2 are passes, then there's no new bidding
+  const newBiddingInRound2 = bids2.some((bid) => !bid.isPass);
 
   // Make sure to get the correct winner name
   const getWinnerName = (trick: Trick | undefined) => {
@@ -198,111 +194,95 @@ const GamePlay = () => {
   };
 
   return (
-    <div className="min-h-screen bg-green-900 p-4">
-      <div className="bg-green-800 rounded-lg p-4 mb-4 text-white">
-        <h1 className="text-xl font-bold mb-2">28 Card Game</h1>
-        <div className="flex justify-between text-sm">
-          <div>Mode: {gameMode}</div>
-          <div>Phase: {currentPhase}</div>
-          <div>Current Player: {currentPlayer.name}</div>
-        </div>
+    <div className="game-container">
+      {/* Game phase indicator */}
+      <div className="absolute top-4 left-4 z-40">
+        <div className="flex items-center gap-4">
+          <div className="bg-slate-800 rounded-lg shadow-lg px-4 py-2 border border-slate-700">
+            <h2 className="text-lg font-bold text-slate-200">
+              Round {roundNumber}
+            </h2>
+            <div className="text-sm text-slate-400 font-medium mt-1">
+              {currentPhase === "bidding1_start" ||
+              currentPhase === "bidding1_in_progress"
+                ? "First Bidding Round"
+                : currentPhase === "bidding2_start" ||
+                  currentPhase === "bidding2_in_progress"
+                ? "Second Bidding Round"
+                : currentPhase === "trump_selection_provisional"
+                ? "Selecting Provisional Trump"
+                : currentPhase === "trump_selection_final"
+                ? "Finalizing Trump"
+                : currentPhase === "playing"
+                ? "Playing Tricks"
+                : currentPhase === "trick_completed_awaiting_confirmation"
+                ? "Trick Completed"
+                : currentPhase === "round_over"
+                ? "Round Complete"
+                : currentPhase === "game_over"
+                ? "Game Over"
+                : "Setting Up"}
+            </div>
+          </div>
 
-        {/* Debug buttons and phase indicator */}
-        <div className="mt-2 flex gap-2 items-center">
-          <button
-            type="button"
-            onClick={() => {
-              console.log("Debug - Game State:", {
-                currentPhase,
-                completedTrickAwaitingConfirmation,
-                currentTrick,
-                players,
-              });
-            }}
-            className="bg-purple-600 text-white text-xs px-2 py-1 rounded"
-          >
-            Debug State
-          </button>
-
-          <button
-            type="button"
-            onClick={toggleDebugControls}
-            className={`${
-              showDebugControls ? "bg-red-600" : "bg-purple-600"
-            } text-white text-xs px-2 py-1 rounded`}
-          >
-            {showDebugControls ? "Hide Debug Controls" : "Show Debug Controls"}
-          </button>
-
-          {currentPhase === "trick_completed_awaiting_confirmation" && (
-            <button
-              type="button"
-              onClick={handleConfirmTrick}
-              className="bg-red-600 text-white text-xs px-2 py-1 rounded"
-            >
-              Force Confirm Trick
-            </button>
-          )}
-
-          {/* Phase indicator */}
-          <div className="ml-auto flex items-center gap-2">
-            <span className="text-xs">Phase:</span>
-            <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
-              {currentPhase}
-            </span>
+          {/* Scores */}
+          <div className="bg-slate-800 rounded-lg shadow-lg px-4 py-2 border border-slate-700">
+            <h3 className="text-md font-medium text-slate-300">Round Score:</h3>
+            <div className="text-sm font-medium mt-1">
+              {Object.entries(roundScores).map(([playerId, score], index) => {
+                const player = players.find((p) => p.id === playerId);
+                return (
+                  <div key={playerId} className="text-slate-200">
+                    {player?.name}: {score} pts
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Standalone trick confirmation UI - ALWAYS SHOWN when a trick is completed */}
-      {currentPhase === "trick_completed_awaiting_confirmation" &&
-        completedTrickAwaitingConfirmation && (
-          <div className="mb-4">
-            <StandaloneTrickConfirmation
-              trick={completedTrickAwaitingConfirmation}
-              onConfirm={handleConfirmTrick}
-              autoConfirmDelay={3000}
-              winnerName={getWinnerName(completedTrickAwaitingConfirmation)}
-            />
-          </div>
-        )}
+      {/* Debug controls toggle */}
+      <button
+        className="absolute top-4 right-4 bg-slate-800 px-3 py-1 rounded-md text-sm text-slate-300 hover:bg-slate-700 z-50"
+        onClick={toggleDebugControls}
+      >
+        {showDebugControls ? "Hide Debug" : "Show Debug"}
+      </button>
 
-      {/* Game board - shown during all relevant phases */}
-      {(isBiddingRound1 ||
-        isBiddingRound2 ||
-        currentPhase === "playing_start_trick" ||
-        currentPhase === "playing_in_progress" ||
-        currentPhase === "trick_completed_awaiting_confirmation" ||
-        // Include setup phase if players exist (for debugging)
-        (currentPhase === "setup" && players.length > 0) ||
-        currentPhase === "dealing1") && (
-        <div className="w-full">
-          <GameBoard
-            players={players}
-            currentPlayerIndex={currentPlayerIndex}
-            dealerIndex={dealerIndex}
-            originalBidderIndex={originalBidderIndex}
-            currentTrick={currentTrick}
-            trumpState={trumpState}
-            foldedCard={foldedCard}
-            onCardPlay={handleCardPlay}
-            onRequestTrumpReveal={handleRequestTrumpReveal}
-            gameMode={gameMode}
-            completedTrickAwaitingConfirmation={
-              completedTrickAwaitingConfirmation
-            }
-            onConfirmTrick={handleConfirmTrick}
-          />
+      {/* Debug controls */}
+      {showDebugControls && (
+        <div className="absolute top-16 right-4 z-50">
+          <DebugControls />
         </div>
       )}
 
-      {/* Floating draggable bidding interface */}
+      {/* Main game board */}
+      <div className="py-4 md:py-10">
+        <GameBoard
+          players={players}
+          currentPlayerIndex={currentPlayerIndex}
+          dealerIndex={dealerIndex}
+          originalBidderIndex={originalBidderIndex}
+          currentTrick={currentTrick}
+          trumpState={trumpState}
+          foldedCard={foldedCard}
+          gameMode={gameMode}
+          onCardPlay={handleCardPlay}
+          onRequestTrumpReveal={handleRequestTrumpReveal}
+          completedTrickAwaitingConfirmation={
+            completedTrickAwaitingConfirmation
+          }
+          onConfirmTrick={handleConfirmTrick}
+        />
+      </div>
+
+      {/* UI Overlays based on game phase */}
+      {/* Bidding Interface */}
       {(isBiddingRound1 || isBiddingRound2) && (
         <BiddingInterface
           currentPlayerName={currentPlayer.name}
-          highestBid={
-            isBiddingRound1 ? highestBid1 || null : highestBid2 || null
-          }
+          highestBid={isBiddingRound2 ? highestBid2 : highestBid1}
           onBid={handleBid}
           gameMode={gameMode}
           currentPhase={currentPhase}
@@ -310,130 +290,189 @@ const GamePlay = () => {
         />
       )}
 
-      {/* Trump selection phases */}
-      {(currentPhase === "bidding1_complete" ||
+      {/* Trump Selection Interface */}
+      {(currentPhase === "trump_selection_provisional" ||
+        currentPhase === "trump_selection_final" ||
+        currentPhase === "bidding1_complete" ||
         currentPhase === "bidding2_complete") && (
-        <div className="flex flex-col items-center">
-          {/* Game board in the background */}
-          <div className="w-full opacity-50">
-            <GameBoard
-              players={players}
-              currentPlayerIndex={currentPlayerIndex}
-              dealerIndex={dealerIndex}
-              originalBidderIndex={originalBidderIndex}
-              currentTrick={currentTrick}
-              trumpState={trumpState}
-              foldedCard={foldedCard}
-              onCardPlay={handleCardPlay}
-              onRequestTrumpReveal={handleRequestTrumpReveal}
-              gameMode={gameMode}
-              completedTrickAwaitingConfirmation={
-                completedTrickAwaitingConfirmation
-              }
-              onConfirmTrick={handleConfirmTrick}
+        <TrumpSelectionInterface
+          currentPlayerName={currentPlayer.name}
+          currentPlayerHand={currentPlayer.hand}
+          phase={
+            currentPhase === "bidding1_complete" ||
+            currentPhase === "trump_selection_provisional"
+              ? "trump_selection_provisional"
+              : "trump_selection_final"
+          }
+          highestBid1={highestBid1}
+          highestBid2={highestBid2}
+          newBiddingInRound2={newBiddingInRound2}
+          foldedCard={foldedCard}
+          trumpState={trumpState}
+          onSelectProvisionalTrump={handleProvisionalTrumpSelect}
+          onFinalizeTrump={handleFinalizeTrump}
+        />
+      )}
+
+      {/* Trick Confirmation */}
+      {currentPhase === "trick_completed_awaiting_confirmation" &&
+        completedTrickAwaitingConfirmation && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
+            <StandaloneTrickConfirmation
+              trick={completedTrickAwaitingConfirmation}
+              onConfirm={handleConfirmTrick}
+              winnerName={getWinnerName(completedTrickAwaitingConfirmation)}
             />
           </div>
+        )}
 
-          {/* Trump selection interface in the foreground */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-lg">
-            <TrumpSelectionInterface
-              playerHand={currentPlayer.hand}
-              onSelectProvisionalTrump={
-                currentPhase === "bidding1_complete"
-                  ? handleProvisionalTrumpSelect
-                  : undefined
-              }
-              onFinalizeTrump={
-                currentPhase === "bidding2_complete"
-                  ? handleFinalizeTrump
-                  : undefined
-              }
-              trumpState={trumpState}
-              foldedCard={foldedCard}
-              currentPhase={currentPhase}
-              playerName={currentPlayer.name}
-              newBiddingInRound2={newBiddingInRound2}
-            />
+      {/* Round Over UI */}
+      {currentPhase === "round_over" && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 z-50">
+          <div className="bg-slate-900 rounded-xl shadow-2xl p-6 max-w-md border border-indigo-600">
+            <h2 className="text-2xl font-bold text-center mb-4 bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+              Round {roundNumber} Complete
+            </h2>
+
+            <div className="space-y-4 mb-6">
+              <div className="bg-slate-800 rounded-lg p-4">
+                <h3 className="text-lg font-medium text-slate-200 mb-2">
+                  Round Results:
+                </h3>
+                <div className="space-y-2">
+                  {Object.entries(roundScores).map(([playerId, score]) => {
+                    const player = players.find((p) => p.id === playerId);
+                    const isHighestScore =
+                      score === Math.max(...Object.values(roundScores));
+
+                    return (
+                      <div
+                        key={playerId}
+                        className={`flex justify-between items-center p-2 rounded ${
+                          isHighestScore
+                            ? "bg-indigo-900/50 border border-indigo-500"
+                            : "bg-slate-700/50"
+                        }`}
+                      >
+                        <span className="font-medium text-slate-200">
+                          {player?.name}
+                        </span>
+                        <span
+                          className={`font-bold ${
+                            isHighestScore
+                              ? "text-indigo-300"
+                              : "text-slate-300"
+                          }`}
+                        >
+                          {score} points
+                          {isHighestScore && " 🏆"}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="bg-slate-800 rounded-lg p-4">
+                <h3 className="text-lg font-medium text-slate-200 mb-2">
+                  Game Scores:
+                </h3>
+                <div className="space-y-2">
+                  {Object.entries(gameScores).map(([playerId, score]) => {
+                    const player = players.find((p) => p.id === playerId);
+                    return (
+                      <div
+                        key={playerId}
+                        className="flex justify-between items-center p-2 rounded bg-slate-700/50"
+                      >
+                        <span className="font-medium text-slate-200">
+                          {player?.name}
+                        </span>
+                        <span className="font-bold text-slate-300">
+                          {score} pts
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={handleStartNewRound}
+              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white py-3 px-6 rounded-lg font-medium shadow-lg transition-all duration-200"
+            >
+              Start Next Round
+            </button>
           </div>
         </div>
       )}
 
-      {/* Debug controls */}
-      <DebugControls visible={showDebugControls} />
-
-      {/* Add round over screen UI */}
-      {currentPhase === "round_over" && (
-        <div className="fixed inset-0 bg-black bg-opacity-80 z-40 flex items-center justify-center">
-          <div className="bg-green-800 p-6 rounded-xl shadow-2xl max-w-2xl w-full">
-            <h2 className="text-2xl font-bold text-white mb-4">
-              Round {roundNumber} Complete
-            </h2>
-
-            {/* Latest round score */}
-            {roundScores.length > 0 && (
-              <div className="mb-6 bg-green-900 p-4 rounded-lg">
-                <h3 className="text-xl text-white mb-2">Round Result</h3>
-                <div className="text-white">
-                  <p>
-                    Contract: {roundScores[roundScores.length - 1].contract}
-                  </p>
-                  <p>
-                    {roundScores[roundScores.length - 1].declarerWon ? (
-                      <span className="text-green-400">Declarer won!</span>
-                    ) : (
-                      <span className="text-red-400">Declarer lost!</span>
-                    )}
-                  </p>
-                  <p>
-                    Points: {roundScores[roundScores.length - 1].declarerPoints}{" "}
-                    / {roundScores[roundScores.length - 1].opponentPoints}
-                  </p>
-                  <p>
-                    Game Points:{" "}
-                    {roundScores[roundScores.length - 1].gamePointsChange}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Current game score */}
-            <div className="mb-6 bg-green-900 p-4 rounded-lg">
-              <h3 className="text-xl text-white mb-2">Game Score</h3>
-              {gameMode === "4p" ? (
-                <div className="grid grid-cols-2 gap-4 text-white">
-                  <div>
-                    <p className="font-bold text-blue-400">Team 1</p>
-                    <p>{gameScores.team1Points} points</p>
-                  </div>
-                  <div>
-                    <p className="font-bold text-red-400">Team 2</p>
-                    <p>{gameScores.team2Points} points</p>
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-3 gap-4 text-white">
-                  <div>
-                    <p className="font-bold">{players[0]?.name}</p>
-                    <p>{gameScores.player1Points} points</p>
-                  </div>
-                  <div>
-                    <p className="font-bold">{players[1]?.name}</p>
-                    <p>{gameScores.player2Points} points</p>
-                  </div>
-                  <div>
-                    <p className="font-bold">{players[2]?.name}</p>
-                    <p>{gameScores.player3Points} points</p>
-                  </div>
-                </div>
-              )}
+      {/* Game Over UI */}
+      {currentPhase === "game_over" && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-90 z-50">
+          <div className="bg-slate-900 rounded-xl shadow-2xl p-8 max-w-md border border-indigo-600">
+            <div className="absolute -top-12 left-1/2 transform -translate-x-1/2">
+              <span className="text-6xl">🏆</span>
             </div>
 
-            <div className="flex justify-center">
+            <h2 className="text-3xl font-bold text-center mb-6 bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
+              Game Over!
+            </h2>
+
+            <div className="space-y-4 mb-8">
+              <div className="bg-slate-800 rounded-lg p-4">
+                <h3 className="text-lg font-medium text-slate-200 mb-3">
+                  Final Scores:
+                </h3>
+                <div className="space-y-3">
+                  {Object.entries(gameScores)
+                    .sort(([, a], [, b]) => b - a)
+                    .map(([playerId, score], index) => {
+                      const player = players.find((p) => p.id === playerId);
+                      return (
+                        <div
+                          key={playerId}
+                          className={`flex justify-between items-center p-3 rounded ${
+                            index === 0
+                              ? "bg-gradient-to-r from-yellow-900/50 to-amber-900/50 border border-yellow-600"
+                              : "bg-slate-700/50"
+                          }`}
+                        >
+                          <div className="flex items-center">
+                            {index === 0 && (
+                              <span className="mr-2 text-xl">👑</span>
+                            )}
+                            <span className="font-medium text-slate-200">
+                              {player?.name}
+                            </span>
+                          </div>
+                          <span
+                            className={`font-bold ${
+                              index === 0 ? "text-yellow-400" : "text-slate-300"
+                            }`}
+                          >
+                            {score} points
+                          </span>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <button
+                onClick={() => navigate("/")}
+                className="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-3 px-6 rounded-lg font-medium transition-colors"
+              >
+                Main Menu
+              </button>
               <button
                 onClick={handleStartNewRound}
-                className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform transition hover:scale-105"
+                className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white py-3 px-6 rounded-lg font-medium shadow-lg transition-all duration-200"
               >
-                Start Next Round
+                New Game
               </button>
             </div>
           </div>

@@ -2,10 +2,10 @@ import React from "react";
 import { useGameStore } from "../../store/gameStore";
 
 interface DebugControlsProps {
-  visible: boolean;
+  visible?: boolean;
 }
 
-const DebugControls: React.FC<DebugControlsProps> = ({ visible }) => {
+const DebugControls: React.FC<DebugControlsProps> = ({ visible = true }) => {
   const {
     history = [],
     historyIndex = -1,
@@ -43,61 +43,65 @@ const DebugControls: React.FC<DebugControlsProps> = ({ visible }) => {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-gray-900 text-white p-2 shadow-lg border-t border-gray-700 z-50">
-      <div className="flex justify-between items-center">
+    <div className="bg-slate-900 text-slate-200 p-4 rounded-lg shadow-xl border border-slate-700 max-w-md">
+      <div className="flex justify-between items-center mb-3">
         <div className="text-sm">
-          <span className="font-bold text-purple-400">Debug Mode</span>
+          <span className="font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+            Debug Controls
+          </span>
           {isReplayMode && (
             <span className="ml-2 bg-red-500 text-white px-2 py-0.5 rounded-full text-xs">
               Replay Mode
             </span>
           )}
         </div>
+      </div>
 
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={goBackInHistory}
-            disabled={!canGoBack}
-            className={`px-3 py-1 rounded text-sm ${
-              canGoBack
-                ? "bg-blue-600 hover:bg-blue-700"
-                : "bg-gray-700 cursor-not-allowed"
-            }`}
-          >
-            ← Back
-          </button>
-
-          <div className="text-sm">
-            {currentStep} / {totalSteps}
-          </div>
-
-          <button
-            onClick={goForwardInHistory}
-            disabled={!canGoForward}
-            className={`px-3 py-1 rounded text-sm ${
-              canGoForward
-                ? "bg-blue-600 hover:bg-blue-700"
-                : "bg-gray-700 cursor-not-allowed"
-            }`}
-          >
-            Forward →
-          </button>
-
-          {isReplayMode && (
-            <button
-              onClick={exitReplayMode}
-              className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm ml-4"
-            >
-              Exit Replay Mode
-            </button>
-          )}
+      <div className="bg-slate-800 rounded-lg p-3 mb-3">
+        <div className="text-xs text-slate-400 mb-2">Action Information:</div>
+        <div className="text-sm text-slate-300 font-mono bg-slate-900 p-2 rounded overflow-x-auto">
+          {getCurrentActionInfo()}
         </div>
       </div>
 
-      <div className="mt-1 text-xs text-gray-400 overflow-hidden">
-        <span className="font-semibold">Current Action: </span>
-        {getCurrentActionInfo()}
+      <div className="flex items-center justify-between">
+        <button
+          onClick={goBackInHistory}
+          disabled={!canGoBack}
+          className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+            canGoBack
+              ? "bg-indigo-600 hover:bg-indigo-500 text-white"
+              : "bg-slate-700 text-slate-400 cursor-not-allowed"
+          }`}
+        >
+          ← Previous
+        </button>
+
+        <div className="text-sm bg-slate-800 px-3 py-1 rounded-md">
+          {currentStep} / {totalSteps}
+        </div>
+
+        <button
+          onClick={goForwardInHistory}
+          disabled={!canGoForward}
+          className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+            canGoForward
+              ? "bg-indigo-600 hover:bg-indigo-500 text-white"
+              : "bg-slate-700 text-slate-400 cursor-not-allowed"
+          }`}
+        >
+          Next →
+        </button>
       </div>
+
+      {isReplayMode && (
+        <button
+          onClick={exitReplayMode}
+          className="w-full mt-3 px-3 py-2 bg-red-600 hover:bg-red-500 text-white rounded-md text-sm font-medium transition-colors"
+        >
+          Exit Replay Mode
+        </button>
+      )}
     </div>
   );
 };

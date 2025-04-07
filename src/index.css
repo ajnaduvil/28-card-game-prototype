@@ -2,15 +2,111 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom styles can be added below */
+:root {
+  --color-primary: #6366f1; /* indigo-500 */
+  --color-primary-dark: #4f46e5; /* indigo-600 */
+  --color-secondary: #1d4ed8; /* blue-700 */
+  --color-accent: #ec4899; /* pink-500 */
+  --color-highlight: #facc15; /* yellow-400 */
+  --color-background: #0f172a; /* slate-900 */
+  --color-background-light: #1e293b; /* slate-800 */
+  --color-background-lighter: #334155; /* slate-700 */
+  --color-text: #f8fafc; /* slate-50 */
+  --color-text-muted: #94a3b8; /* slate-400 */
+  --color-border: #475569; /* slate-600 */
+  --color-danger: #dc2626; /* red-600 */
+  --color-success: #16a34a; /* green-600 */
+  --color-hearts: #ef4444; /* red-500 */
+  --color-diamonds: #ef4444; /* red-500 */
+  --color-clubs: #f8fafc; /* slate-50 */
+  --color-spades: #f8fafc; /* slate-50 */
+  --team-a-color: #2563eb; /* blue-600 */
+  --team-b-color: #ec4899; /* pink-500 */
+}
+
+/* Base styles */
 body {
-  @apply min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200;
+  @apply min-h-screen bg-slate-900 text-slate-50;
+  background-color: var(--color-background);
+  color: var(--color-text);
   font-family: 'Inter', sans-serif;
 }
 
-/* Game specific custom utility classes can be added here */
+/* Game specific custom utility classes */
 @layer components {
   .card-container {
     @apply relative transition-all duration-200;
+  }
+  
+  .game-container {
+    @apply w-full max-w-7xl mx-auto h-[85vh] relative;
+  }
+  
+  .game-board {
+    @apply relative bg-slate-800 rounded-xl shadow-xl border border-slate-700 overflow-hidden;
+    background-image: radial-gradient(ellipse at center, var(--color-background-light) 0%, var(--color-background) 100%);
+  }
+  
+  .player-area {
+    @apply transition-all duration-300 flex flex-col items-center;
+  }
+  
+  .player-info {
+    @apply flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 bg-opacity-90 border-2 shadow-lg text-slate-50;
+  }
+  
+  .player-info.active {
+    @apply border-yellow-400 bg-indigo-900 shadow-lg shadow-indigo-900/50;
+  }
+  
+  .trump-indicator {
+    @apply absolute px-3 py-2 rounded-lg bg-slate-800 bg-opacity-90 border border-yellow-400 shadow-lg flex items-center gap-2;
+  }
+  
+  .bid-indicator {
+    @apply px-2 py-1 rounded-md bg-indigo-600 text-white text-sm font-medium;
+  }
+  
+  .dealer-badge {
+    @apply bg-yellow-600 text-xs px-1.5 py-0.5 rounded font-medium text-white;
+  }
+  
+  .bidder-badge {
+    @apply bg-purple-600 text-xs px-1.5 py-0.5 rounded font-medium text-white;
+  }
+  
+  .declarer-badge {
+    @apply bg-pink-600 text-xs px-1.5 py-0.5 rounded font-medium text-white;
+  }
+}
+
+/* Card animations */
+.card-played {
+  animation: card-played 0.4s forwards;
+}
+
+@keyframes card-played {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-20px) scale(1.05);
+    opacity: 1;
+  }
+}
+
+.card-collected {
+  animation: card-collected 0.5s forwards;
+}
+
+@keyframes card-collected {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(30px) scale(0.8);
+    opacity: 0;
   }
 }
