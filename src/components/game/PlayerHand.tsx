@@ -37,6 +37,8 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
   );
   const [selectedCard, setSelectedCard] = useState<CardModel | null>(null);
   const [canAskTrump, setCanAskTrump] = useState<boolean>(false);
+  const [canDeclarerRevealTrump, setCanDeclarerRevealTrump] =
+    useState<boolean>(false);
   const [leadSuitCards, setLeadSuitCards] = useState<Record<string, boolean>>(
     {}
   );
@@ -49,6 +51,7 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
     if (!isCurrentPlayer || !currentTrick || !trumpState) {
       setPlayableCards({});
       setCanAskTrump(false);
+      setCanDeclarerRevealTrump(false);
       setLeadSuitCards({});
       setShowDeclarerRevealChoice(false);
       setCardPendingRevealChoice(null);
@@ -86,6 +89,16 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
         currentTrick.cards.length > 0 &&
         playerId !== finalDeclarerId &&
         !trumpState.trumpRevealed
+    );
+
+    // Set whether declarer can reveal trump (when can't follow suit and trump not revealed)
+    setCanDeclarerRevealTrump(
+      isCurrentPlayer &&
+        !canFollow &&
+        currentTrick.cards.length > 0 &&
+        playerId === finalDeclarerId &&
+        !trumpState.trumpRevealed &&
+        trumpState.finalTrumpSuit !== undefined
     );
 
     setPlayableCards(playableMap);
@@ -153,6 +166,13 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
     requestTrumpRevealAction();
   };
 
+  const handleDeclarerRevealTrump = () => {
+    if (declarerRevealTrumpAction(playerId)) {
+      // If trump was successfully revealed, update UI
+      setCanDeclarerRevealTrump(false);
+    }
+  };
+
   const handleDeclarerChoice = (reveal: boolean) => {
     if (!cardPendingRevealChoice || !playerId) return;
 
@@ -176,10 +196,21 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
     <div className="relative player-hand flex flex-col items-center">
       {canAskTrump && (
         <button
+          type="button"
           onClick={handleAskTrump}
           className="mb-2 bg-yellow-500 hover:bg-yellow-600 text-white py-1 px-3 rounded text-sm"
         >
           Ask Trump?
+        </button>
+      )}
+
+      {canDeclarerRevealTrump && (
+        <button
+          type="button"
+          onClick={handleDeclarerRevealTrump}
+          className="mb-2 bg-purple-500 hover:bg-purple-600 text-white py-1 px-3 rounded text-sm"
+        >
+          Reveal Trump
         </button>
       )}
 
@@ -197,12 +228,14 @@ const PlayerHand: React.FC<PlayerHandProps> = ({
           <p className="text-white text-xs mb-1">Play Trump:</p>
           <div className="flex space-x-2">
             <button
+              type="button"
               onClick={() => handleDeclarerChoice(false)} // Play Hidden
               className="px-2 py-1 bg-gray-600 hover:bg-gray-500 text-white text-xs rounded"
             >
               Keep Hidden
             </button>
             <button
+              type="button"
               onClick={() => handleDeclarerChoice(true)} // Play & Reveal
               className="px-2 py-1 bg-green-600 hover:bg-green-500 text-white text-xs rounded"
             >
