@@ -177,6 +177,10 @@ The dealer deals cards clockwise in two distinct batches, with a bidding round a
         *   **3-Player Mode (Min Bid 22):**
             *   Bid Made: +2 Game Points for Declarer. Declarer collects 2 units of stake *from each* opponent individually (total 4 units received).
             *   Bid Failed: -4 Game Points for Declarer. Declarer pays 2 units of stake *to each* opponent individually (total 4 units paid).
+    *   **Insufficient Stakes for Payment:** If a player/team owes more units of stake than they have remaining at the end of a round:
+        *   They pay what they have (all their remaining stakes).
+        *   The game ends immediately.
+        *   The player/team with remaining stakes is declared the winner.
 
 ## 7. Winning the Game
 
@@ -186,7 +190,7 @@ A full game continues until one team (in 4-player mode) or one player (in 3-play
 ### Game Progression
 1. **Starting Stakes:** Before the game begins, each team (4p) or individual player (3p) starts with an agreed-upon amount of money or stakes.
 2. **Round Completion:** After each round, stakes are exchanged based on the outcome as described in the Scoring section.
-3. **Elimination:** When a team or player loses all their money, they are eliminated, and the game ends.
+3. **Elimination:** When a team or player loses all their money, they are eliminated, and the game ends. This can happen during stake settlement if a player/team owes more units than they have remaining - they pay what they have, and the game ends immediately.
 4. **Winner:** The team(s) or player(s) with remaining money at the end are the winners.
 
 ### Alternative Winning Conditions (Optional)
@@ -211,7 +215,7 @@ In these cases, the final settlement of stakes occurs at the end based on the di
 *   **Dealer Rotation:** After each round, the Original Starting Bidder becomes the dealer for the next round.
 *   **Tiered Scoring:** Game points awarded/lost depend on whether the final bid was made in Round 1 or Round 2 (or was Honors).
 *   **Concession Option:** The bid winner may concede if they believe they cannot make their bid. This option is available at any point - immediately after winning the bid in Phase 1, after winning the final bid in Phase 2, or during trick play (as long as they have not yet won enough points to meet their bid). Concession results in an automatic loss - the entire team loses in 4-player mode, and the individual Declarer loses in 3-player mode.
-*   **Full Game Definition:** A full game continues until one team (4p) or player (3p) loses all their stakes.
+*   **Full Game Definition:** A full game continues until one team (4p) or player (3p) loses all their stakes. If a player/team owes more stakes than they have remaining at the end of a round, they pay what they have and the game ends immediately.
 *   **Follow Suit:** To play a card of the same suit as the card led to the trick.
 *   **Honors:** A bid made during the first bidding round that *exceeds* 18 (3-Player) or *exceeds* 20 (4-Player), carrying specific scoring implications if it becomes the final contract.
 *   **Lead:** To play the first card to a trick.
