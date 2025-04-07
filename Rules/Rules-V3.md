@@ -59,9 +59,9 @@ The dealer deals cards clockwise in two distinct batches, with a bidding round a
 1.  **Eligibility:** All players participate.
 2.  **Starting Bidder:** The **Original Starting Bidder** (player to dealer's right) begins the auction.
 3.  **Bidding:** Proceeds clockwise. Each player may:
-    *   Make a numerical bid higher than the current highest bid. The minimum opening bid is typically 14 (confirm with players).
+    *   Make a numerical bid higher than the current highest bid. The minimum opening bid is 14 for 4-player mode and 12 for 3-player mode.
     *   Declare "Honors". An "Honors" bid in this round is any bid *exceeding* 18 (3-Player) or *exceeding* 20 (4-Player). This type of bid carries different scoring implications (see Section 6).
-    *   Pass. Passing in this round only prevents further bidding *within this first round*.
+    *   Pass. A player who passes may still bid again later in the same round if the bidding continues and another player makes a higher bid. Bidding in Round 1 ends only when all players pass consecutively on the current highest bid.
 4.  **Round 1 Winner (Bidder 1):** The player who makes the highest unchallenged bid (which could be a Normal bid or an Honors bid) in this round. Let their bid be Bid 1.
 5.  **Provisional Trump Selection & Folding:**
     *   Bidder 1 examines their initial 4 cards.
@@ -72,14 +72,14 @@ The dealer deals cards clockwise in two distinct batches, with a bidding round a
 
 ### Phase 2: Second Bidding Round & Final Trump Selection
 
-1.  **Eligibility:** Players who did not pass in Round 1 can continue. Players who passed in Round 1 *can* re-enter bidding in Round 2 if they wish, unless they pass again.
-2.  **Starting Bidder:** Bidding can continue clockwise from where Round 1 ended, **or** Bidder 1 (the winner of the first round) may choose to start the bidding in Round 2. Confirm the convention before starting.
+1.  **Eligibility:** All players can participate in Round 2 bidding regardless of whether they passed in Round 1, as they now have new cards. As in Round 1, a player who passes may still bid again later if the bidding continues and another player makes a higher bid.
+2.  **Starting Bidder:** The winner of the first bidding round (Bidder 1) starts the bidding in Round 2.
 3.  **Minimum Bid:**
     *   **4-Player:** 24
     *   **3-Player:** 22
     *   If Bid 1 (from Round 1) is less than these minimums, bidding *must* start at 24/22 or higher.
     *   If Bid 1 is already equal to or greater than these minimums, bidding *must* start higher than Bid 1.
-4.  **Bidding:** Proceeds clockwise. Players can bid higher than the current highest bid (from either round), declare Honors, or pass. Passing now is permanent for the entire round.
+4.  **Bidding:** Proceeds clockwise. Players can bid higher than the current highest bid (from either round), declare Honors, or pass. Bidding in Round 2 ends only when all players pass consecutively on the current highest bid, just as in Round 1.
 5.  **Determining Final Declarer & Final Trump:**
     *   The player with the highest unchallenged bid across both rounds (or the final Honors declaration) is the **Final Declarer**. Their bid is the **Final Contract**.
     *   **Case 1: Final Declarer is DIFFERENT from Bidder 1:**
@@ -103,7 +103,7 @@ The dealer deals cards clockwise in two distinct batches, with a bidding round a
     *   **If a Non-Declarer Cannot Follow Suit:** Before playing, they may ask the Final Declarer, "Trump?".
         *   **Declarer's Response:** The Final Declarer *must* turn their folded trump indicator card face-up, revealing the Final Trump suit to all. The Declarer then picks up this revealed card and adds it to their active hand (now holding 8 cards).
         *   **Asker's Play (Crucial Rule):** After the trump is revealed *due to their request*, the asking player **must** play a card of the trump suit if they possess one during that specific trick. If they do not possess any trump cards, they may discard any other card.
-        *   Alternatively (less common), a non-declarer unable to follow suit *could* play a card without asking, leaving the trump hidden.
+        *   A non-declarer unable to follow suit may choose to play a card without asking for trump, leaving the trump hidden. Asking for trump is a choice, not mandatory.
     *   **If the Final Declarer Cannot Follow Suit:**
         *   The Declarer has two options:
             *   **Option 1: Play Trump (Ruff):** Play a card from the Final Trump suit (if they hold one in their active hand or if the folded card is their only trump).
@@ -188,7 +188,7 @@ In these cases, the final settlement of stakes occurs at the end based on the di
 ## 8. Key Rule Summary & Unique Aspects
 
 *   **Deck Differences:** 32 cards (A-7) for 4 players, 24 cards (A-9) for 3 players.
-*   **Two Bidding Rounds:** An initial round after 4 cards, a second round after 8 cards with higher minimums.
+*   **Two Bidding Rounds:** An initial round after 4 cards, a second round after 8 cards with higher minimums. The winner of the first bidding round (Bidder 1) starts the bidding in Round 2.
 *   **Two-Stage Trump Selection:** Provisional trump chosen after Round 1, final trump chosen after Round 2 (with option for Bidder 1=Bidder 2 to revise).
 *   **Folded Trump Indicator:** Physical card set aside face-down to lock in the secret trump choice.
 *   **Hidden Trump Reveal:** Trump suit is only revealed when requested by a player unable to follow suit, or when the Declarer is forced to play or declare it.
