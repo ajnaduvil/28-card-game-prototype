@@ -740,51 +740,41 @@ export const useGameStore = create<GameState & GameActions>()(
 
             set(state => {
                 // Validate we're in the right phase
-                if (state.currentPhase !== 'trick_completed_awaiting_confirmation') {
-                    console.error("No trick awaiting confirmation");
+                if (state.currentPhase !== 'trick_completed_awaiting_confirmation' || !state.completedTrickAwaitingConfirmation) {
+                    console.warn("Cannot confirm trick - not in trick_completed_awaiting_confirmation phase or no trick to confirm");
                     return;
                 }
 
-                if (!state.completedTrickAwaitingConfirmation) {
-                    console.error("No trick awaiting confirmation");
-                    return;
-                }
+                const trick = state.completedTrickAwaitingConfirmation;
+                state.completedTricks.push(trick);
 
-                console.log("Confirming trick in store:", state.completedTrickAwaitingConfirmation);
-
-                const completedTrick = state.completedTrickAwaitingConfirmation;
-                const winnerPlayerId = completedTrick.winnerId;
-
+                const winnerPlayerId = trick.winnerId;
                 if (!winnerPlayerId) {
                     console.error("Trick has no winner");
                     return;
                 }
 
                 const winnerPlayerIndex = state.players.findIndex(p => p.id === winnerPlayerId);
-
                 if (winnerPlayerIndex === -1) {
-                    console.error("Winner player not found");
+                    console.error("Winner not found in players array");
                     return;
                 }
 
-                // Add the completed trick to the winner's tricks
                 const winnerPlayer = state.players[winnerPlayerIndex];
-                winnerPlayer.tricksWon.push(completedTrick);
+                winnerPlayer.tricksWon.push(trick);
 
-                // Add to completed tricks
-                state.completedTricks.push(completedTrick);
-
-                // Check if all cards have been played
-                const allCardsPlayed = state.players.every(p => p.hand.length === 0);
+                const allCardsPlayed = state.completedTricks.length === (state.gameMode === '3p' ? 8 : 8);
 
                 if (allCardsPlayed) {
                     // Round is complete
-                    state.currentPhase = 'round_over';
+                    console.log("Round over, all cards played");
+
+                    // Call the helper function to calculate results
+                    // which is defined at the end of this file
+                    calculateRoundResults(state);
+
                     state.currentTrick = null;
                     state.completedTrickAwaitingConfirmation = undefined;
-
-                    // Score calculation would go here
-                    console.log("Round over, all cards played");
                 } else {
                     // Start a new trick with the winner as leader
                     state.currentTrick = {
@@ -803,6 +793,8 @@ export const useGameStore = create<GameState & GameActions>()(
 
                     console.log("Starting new trick with leader:", winnerPlayer.name);
                 }
+
+                success = true;
             });
 
             return success;
@@ -1067,3 +1059,163 @@ export const useGameStore = create<GameState & GameActions>()(
         }
     }))
 );
+
+// Helper to calculate points from a player's won tricks
+const calculatePlayerCardPoints = (player: Player): number => {
+    return player.tricksWon
+        .flatMap(trick => trick.cards)
+        .reduce((sum, card) => sum + card.pointValue, 0);
+};
+
+// Check if game is over
+const checkGameOver = (state: GameState): boolean => {
+    const { gameScores, targetScore, gameMode } = state;
+
+    if (gameMode === '3p') {
+        // In 3p, check if any player reached target score
+        return (
+            gameScores.player1Points >= targetScore ||
+            gameScores.player2Points >= targetScore ||
+            gameScores.player3Points >= targetScore
+        );
+    } else {
+        // In 4p, check if any team reached target score
+        return (
+            (gameScores.team1Points || 0) >= targetScore ||
+            (gameScores.team2Points || 0) >= targetScore
+        );
+    }
+};
+
+// Update game scores based on game mode
+const updateGameScores = (
+    state: GameState,
+    declarerIndex: number,
+    declarerWon: boolean,
+    gamePointsChange: number
+) => {
+    const absPoints = Math.abs(gamePointsChange);
+
+    if (state.gameMode === '3p') {
+        // 3-player scoring
+        const playerKeys: Array<keyof GameScore> = ['player1Points', 'player2Points', 'player3Points'];
+
+        if (declarerWon) {
+            // Declarer wins points
+            state.gameScores[playerKeys[declarerIndex]] += absPoints;
+        } else {
+            // Each opponent gets the full points (not split)
+            // According to rules section 6.3, each opponent gets 2 points in Round 2
+            for (let i = 0; i < state.players.length; i++) {
+                if (i !== declarerIndex) {
+                    state.gameScores[playerKeys[i]] += absPoints;
+                }
+            }
+        }
+    } else {
+        // 4-player team scoring
+        const declarerTeam = state.players[declarerIndex].team!;
+        const winningTeamKey = declarerTeam === 0 ? 'team1Points' : 'team2Points';
+        const losingTeamKey = declarerTeam === 0 ? 'team2Points' : 'team1Points';
+
+        if (declarerWon) {
+            state.gameScores[winningTeamKey] = (state.gameScores[winningTeamKey] || 0) + absPoints;
+        } else {
+            state.gameScores[losingTeamKey] = (state.gameScores[losingTeamKey] || 0) + absPoints;
+        }
+    }
+};
+
+// Calculate round results
+const calculateRoundResults = (state: GameState) => {
+    // Get relevant state
+    const { players, trumpState, finalBid, gameMode, roundNumber } = state;
+
+    if (!finalBid || !trumpState.finalDeclarerId) return;
+
+    // Find the declarer and their partner (if 4p)
+    const declarerIndex = players.findIndex(p => p.id === trumpState.finalDeclarerId);
+    const isRound1Bid = !state.highestBid2 || (state.highestBid2 && state.highestBid2.isPass);
+
+    let declarerPoints = 0;
+    let opponentPoints = 0;
+
+    // Calculate points won by each side based on game mode
+    if (gameMode === '3p') {
+        // In 3p, declarer is solo against temporary alliance of other two
+        declarerPoints = calculatePlayerCardPoints(players[declarerIndex]);
+
+        // Sum points for other two players
+        for (let i = 0; i < players.length; i++) {
+            if (i !== declarerIndex) {
+                opponentPoints += calculatePlayerCardPoints(players[i]);
+            }
+        }
+    } else {
+        // In 4p, two fixed teams - declarer's team vs opponents
+        const declarerTeam = players[declarerIndex].team;
+
+        // Sum points for each team
+        players.forEach(player => {
+            const points = calculatePlayerCardPoints(player);
+
+            if (player.team === declarerTeam) {
+                declarerPoints += points;
+            } else {
+                opponentPoints += points;
+            }
+        });
+    }
+
+    // Check if contract was made
+    const declarerWon = declarerPoints >= finalBid.amount;
+
+    // Calculate game points based on the complex set of rules
+    let gamePointsChange = 0;
+
+    if (isRound1Bid) {
+        // Round 1 bid scoring is the same for 3p and 4p
+        if (finalBid.isHonors) {
+            // Honors bid from Round 1
+            gamePointsChange = declarerWon ? 2 : -2;
+        } else {
+            // Normal bid from Round 1
+            gamePointsChange = declarerWon ? 1 : -1;
+        }
+    } else {
+        // Round 2 bid scoring differs by game mode
+        if (gameMode === '3p') {
+            // 3-player mode Round 2 bid
+            gamePointsChange = declarerWon ? 2 : -4; // 4 point penalty for failing in 3p
+        } else {
+            // 4-player mode Round 2 bid
+            gamePointsChange = declarerWon ? 2 : -3; // 3 point penalty for failing in 4p
+        }
+    }
+
+    // Create round score record
+    const roundScore: RoundScore = {
+        roundNumber,
+        declarerPoints,
+        opponentPoints,
+        contract: finalBid.amount,
+        bid1Amount: state.highestBid1?.amount,
+        bid2Amount: state.highestBid2?.amount,
+        isHonors: finalBid.isHonors,
+        declarerWon,
+        gamePointsChange,
+        timestamp: Date.now()
+    };
+
+    // Update round scores array
+    state.roundScores.push(roundScore);
+
+    // Update game scores based on game mode
+    updateGameScores(state, declarerIndex, declarerWon, gamePointsChange);
+
+    // Check if game is over based on target score
+    const isGameOver = checkGameOver(state);
+
+    // Update game phase
+    state.currentPhase = isGameOver ? 'game_over' : 'round_over';
+};

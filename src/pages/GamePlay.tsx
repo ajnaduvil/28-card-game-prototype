@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGameStore } from "../store/gameStore";
 import GameBoard from "../components/game/GameBoard";
@@ -7,10 +7,13 @@ import TrumpSelectionInterface from "../components/game/TrumpSelectionInterface"
 import StandaloneTrickConfirmation from "../components/game/StandaloneTrickConfirmation";
 import DebugControls from "../components/game/DebugControls";
 import { Trick } from "../models/game";
+import RoundOverScreen from "../components/game/RoundOverScreen";
+import GameScoreDisplay from "../components/game/GameScoreDisplay";
 
 const GamePlay = () => {
   const navigate = useNavigate();
   const [showDebugControls, setShowDebugControls] = useState(false);
+  const [trickCount, setTrickCount] = useState(0);
 
   const {
     players,
@@ -21,6 +24,7 @@ const GamePlay = () => {
     originalBidderIndex,
     trumpState,
     currentTrick,
+    completedTricks,
     completedTrickAwaitingConfirmation,
     highestBid1,
     highestBid2,
@@ -38,7 +42,27 @@ const GamePlay = () => {
     gameScores,
     roundNumber,
     startNewRound,
+    targetScore,
   } = useGameStore();
+
+  // Get the latest round score
+  const latestRoundScore =
+    roundScores.length > 0 ? roundScores[roundScores.length - 1] : null;
+
+  // Update trick count to trigger UI refresh when tricks are completed
+  useEffect(() => {
+    setTrickCount(completedTricks.length);
+    console.log(`Trick count updated: ${completedTricks.length}`);
+  }, [completedTricks.length]);
+
+  // Handle trick confirmation with UI refresh
+  const handleConfirmTrick = useCallback(() => {
+    // Record history before action
+    addToHistory("confirmTrick", {});
+    confirmTrick();
+    // Force immediate UI refresh to show updated scores
+    setTrickCount((prev) => prev + 1);
+  }, [addToHistory, confirmTrick]);
 
   // Redirect to setup if no game is initialized
   useEffect(() => {
@@ -54,6 +78,8 @@ const GamePlay = () => {
       currentPlayerIndex,
       currentTrick,
       gameMode,
+      completedTricks: completedTricks.length,
+      trickCount,
     });
   }, [
     players,
@@ -62,6 +88,8 @@ const GamePlay = () => {
     currentPlayerIndex,
     currentTrick,
     gameMode,
+    completedTricks.length,
+    trickCount,
   ]);
 
   // Log when game phase changes
@@ -153,14 +181,6 @@ const GamePlay = () => {
     return result === true; // Explicitly check for true
   };
 
-  // Handle trick confirmation
-  const handleConfirmTrick = () => {
-    // Record history before action
-    addToHistory("confirmTrick", {});
-
-    confirmTrick();
-  };
-
   // Toggle debug controls
   const toggleDebugControls = () => {
     setShowDebugControls((prev) => !prev);
@@ -213,7 +233,8 @@ const GamePlay = () => {
                 ? "Selecting Provisional Trump"
                 : currentPhase === "trump_selection_final"
                 ? "Finalizing Trump"
-                : currentPhase === "playing"
+                : currentPhase === "playing_start_trick" ||
+                  currentPhase === "playing_in_progress"
                 ? "Playing Tricks"
                 : currentPhase === "trick_completed_awaiting_confirmation"
                 ? "Trick Completed"
@@ -225,20 +246,13 @@ const GamePlay = () => {
             </div>
           </div>
 
-          {/* Scores */}
-          <div className="bg-slate-800 rounded-lg shadow-lg px-4 py-2 border border-slate-700">
-            <h3 className="text-md font-medium text-slate-300">Round Score:</h3>
-            <div className="text-sm font-medium mt-1">
-              {Object.entries(roundScores).map(([playerId, score], index) => {
-                const player = players.find((p) => p.id === playerId);
-                return (
-                  <div key={playerId} className="text-slate-200">
-                    {player?.name}: {score} pts
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          {/* Game Score Display */}
+          <GameScoreDisplay
+            gameScores={gameScores}
+            gameMode={gameMode}
+            players={players}
+            targetScore={targetScore}
+          />
         </div>
       </div>
 
@@ -282,7 +296,9 @@ const GamePlay = () => {
       {(isBiddingRound1 || isBiddingRound2) && (
         <BiddingInterface
           currentPlayerName={currentPlayer.name}
-          highestBid={isBiddingRound2 ? highestBid2 : highestBid1}
+          highestBid={
+            isBiddingRound2 ? highestBid2 || null : highestBid1 || null
+          }
           onBid={handleBid}
           gameMode={gameMode}
           currentPhase={currentPhase}
@@ -327,85 +343,16 @@ const GamePlay = () => {
         )}
 
       {/* Round Over UI */}
-      {currentPhase === "round_over" && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 z-50">
-          <div className="bg-slate-900 rounded-xl shadow-2xl p-6 max-w-md border border-indigo-600">
-            <h2 className="text-2xl font-bold text-center mb-4 bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
-              Round {roundNumber} Complete
-            </h2>
-
-            <div className="space-y-4 mb-6">
-              <div className="bg-slate-800 rounded-lg p-4">
-                <h3 className="text-lg font-medium text-slate-200 mb-2">
-                  Round Results:
-                </h3>
-                <div className="space-y-2">
-                  {Object.entries(roundScores).map(([playerId, score]) => {
-                    const player = players.find((p) => p.id === playerId);
-                    const isHighestScore =
-                      score === Math.max(...Object.values(roundScores));
-
-                    return (
-                      <div
-                        key={playerId}
-                        className={`flex justify-between items-center p-2 rounded ${
-                          isHighestScore
-                            ? "bg-indigo-900/50 border border-indigo-500"
-                            : "bg-slate-700/50"
-                        }`}
-                      >
-                        <span className="font-medium text-slate-200">
-                          {player?.name}
-                        </span>
-                        <span
-                          className={`font-bold ${
-                            isHighestScore
-                              ? "text-indigo-300"
-                              : "text-slate-300"
-                          }`}
-                        >
-                          {score} points
-                          {isHighestScore && " 🏆"}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="bg-slate-800 rounded-lg p-4">
-                <h3 className="text-lg font-medium text-slate-200 mb-2">
-                  Game Scores:
-                </h3>
-                <div className="space-y-2">
-                  {Object.entries(gameScores).map(([playerId, score]) => {
-                    const player = players.find((p) => p.id === playerId);
-                    return (
-                      <div
-                        key={playerId}
-                        className="flex justify-between items-center p-2 rounded bg-slate-700/50"
-                      >
-                        <span className="font-medium text-slate-200">
-                          {player?.name}
-                        </span>
-                        <span className="font-bold text-slate-300">
-                          {score} pts
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={handleStartNewRound}
-              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white py-3 px-6 rounded-lg font-medium shadow-lg transition-all duration-200"
-            >
-              Start Next Round
-            </button>
-          </div>
-        </div>
+      {currentPhase === "round_over" && latestRoundScore && (
+        <RoundOverScreen
+          roundNumber={roundNumber}
+          latestRoundScore={latestRoundScore}
+          gameScores={gameScores}
+          gameMode={gameMode}
+          players={players}
+          trumpState={trumpState}
+          onStartNextRound={handleStartNewRound}
+        />
       )}
 
       {/* Game Over UI */}
@@ -425,14 +372,89 @@ const GamePlay = () => {
                 <h3 className="text-lg font-medium text-slate-200 mb-3">
                   Final Scores:
                 </h3>
-                <div className="space-y-3">
-                  {Object.entries(gameScores)
-                    .sort(([, a], [, b]) => b - a)
-                    .map(([playerId, score], index) => {
-                      const player = players.find((p) => p.id === playerId);
-                      return (
+                {gameMode === "4p" ? (
+                  // Display team scores for 4p mode
+                  <div className="space-y-2">
+                    <div
+                      className={`flex justify-between items-center p-3 rounded ${
+                        (gameScores.team1Points || 0) >
+                        (gameScores.team2Points || 0)
+                          ? "bg-gradient-to-r from-yellow-900/50 to-amber-900/50 border border-yellow-600"
+                          : "bg-slate-700/50"
+                      }`}
+                    >
+                      <div className="flex items-center">
+                        {(gameScores.team1Points || 0) >
+                          (gameScores.team2Points || 0) && (
+                          <span className="mr-2 text-xl">👑</span>
+                        )}
+                        <span className="font-medium text-slate-200">
+                          Team 1 -{" "}
+                          {players
+                            .filter((p) => p.team === 0)
+                            .map((p) => p.name)
+                            .join(" & ")}
+                        </span>
+                      </div>
+                      <span
+                        className={`font-bold ${
+                          (gameScores.team1Points || 0) >
+                          (gameScores.team2Points || 0)
+                            ? "text-yellow-400"
+                            : "text-slate-300"
+                        }`}
+                      >
+                        {gameScores.team1Points} points
+                      </span>
+                    </div>
+
+                    <div
+                      className={`flex justify-between items-center p-3 rounded ${
+                        (gameScores.team2Points || 0) >
+                        (gameScores.team1Points || 0)
+                          ? "bg-gradient-to-r from-yellow-900/50 to-amber-900/50 border border-yellow-600"
+                          : "bg-slate-700/50"
+                      }`}
+                    >
+                      <div className="flex items-center">
+                        {(gameScores.team2Points || 0) >
+                          (gameScores.team1Points || 0) && (
+                          <span className="mr-2 text-xl">👑</span>
+                        )}
+                        <span className="font-medium text-slate-200">
+                          Team 2 -{" "}
+                          {players
+                            .filter((p) => p.team === 1)
+                            .map((p) => p.name)
+                            .join(" & ")}
+                        </span>
+                      </div>
+                      <span
+                        className={`font-bold ${
+                          (gameScores.team2Points || 0) >
+                          (gameScores.team1Points || 0)
+                            ? "text-yellow-400"
+                            : "text-slate-300"
+                        }`}
+                      >
+                        {gameScores.team2Points} points
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  // Display individual scores for 3p mode
+                  <div className="space-y-2">
+                    {players
+                      .map((player, index) => ({
+                        player,
+                        score: gameScores[
+                          `player${index + 1}Points` as keyof typeof gameScores
+                        ] as number,
+                      }))
+                      .sort((a, b) => b.score - a.score)
+                      .map(({ player, score }, index) => (
                         <div
-                          key={playerId}
+                          key={player.id}
                           className={`flex justify-between items-center p-3 rounded ${
                             index === 0
                               ? "bg-gradient-to-r from-yellow-900/50 to-amber-900/50 border border-yellow-600"
@@ -444,7 +466,7 @@ const GamePlay = () => {
                               <span className="mr-2 text-xl">👑</span>
                             )}
                             <span className="font-medium text-slate-200">
-                              {player?.name}
+                              {player.name}
                             </span>
                           </div>
                           <span
@@ -455,13 +477,13 @@ const GamePlay = () => {
                             {score} points
                           </span>
                         </div>
-                      );
-                    })}
-                </div>
+                      ))}
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex space-x-3">
               <button
                 onClick={() => navigate("/")}
                 className="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-3 px-6 rounded-lg font-medium transition-colors"
